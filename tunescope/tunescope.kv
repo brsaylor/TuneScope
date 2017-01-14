@@ -1,0 +1,100 @@
+#:import Player tunescope.player.Player
+
+<MainWindow>:
+
+    BoxLayout:
+        width: root.width
+        height: root.height
+        orientation: 'vertical'
+
+        Button:
+            text: "Open"
+            on_release: root.show_open_dialog()
+
+        Label:
+            text: app.player.title
+
+        Label:
+            text: app.player.artist
+
+        Label:
+            text: app.player.album
+
+        Button:
+            text: "Pause" if app.player.playing else "Play"
+            on_release: app.player.playing = not app.player.playing
+
+        GridLayout:
+            cols: 3
+
+            # Playback position slider
+
+            Label:
+                text: "{}".format(app.format_time(app.player.position))
+                size_hint_x: None
+
+            Slider:
+                value: app.player.position
+                on_value: app.player.position = self.value
+                min: 0
+                max: app.player.duration
+                step: 0.01
+                on_touch_down: app.player.on_slider_seek_begin()
+                on_touch_up: app.player.on_slider_seek_end()
+
+            Label:
+                text: "{}".format(app.format_time(app.player.duration))
+                size_hint_x: None
+
+            # Speed slider
+
+            Label:
+                text: "Speed"
+                size_hint_x: None
+
+            Slider:
+                value: app.player.speed
+                on_value: app.player.speed = self.value
+                range: Player.speed.bounds
+                step: 0.01
+
+            Label:
+                text: "{:0.2f}".format(app.player.speed)
+                size_hint_x: None
+
+            # Pitch slider
+
+            Label:
+                text: "Pitch"
+                size_hint_x: None
+
+            Slider:
+                value: app.player.pitch
+                on_value: app.player.pitch = self.value
+                range: Player.pitch.bounds
+                step: 1
+
+            Label:
+                text: str(int(app.player.pitch))
+                size_hint_x: None
+
+
+<OpenDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            path: "~/Music"
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Open"
+                on_release: root.open(filechooser.path, filechooser.selection)
