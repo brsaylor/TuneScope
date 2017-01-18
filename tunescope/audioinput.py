@@ -52,3 +52,116 @@ def copy_buffer(src, src_pos, dest, dest_pos, length):
     dest_mem[d1:d2] = src_mem[s1:s2]
 
     src.unmap(src_info)
+
+
+class AudioQueue(object):
+    """ Queue for audio frames for re-buffering purposes.
+
+    Works with 32-bit floating-point, channel-interleaved data.
+    """
+
+    def __init__(self, channels, capacity):
+        """ Instantiate an AudioQueue.
+
+        Parameters
+        ----------
+        channels : int
+            Number of channels
+        capacity : int
+            Maximum number of sample frames that can fit in the queue
+        """
+
+        # Ring buffer to hold queued frames
+        self._buffer = np.empty(shape=(capacity, channels), dtype=sample_dtype)
+        self._start = 0  # start index of queued frames in _buffer
+        self._size = 0   # number of queued frames in buffer
+
+    @property
+    def channels(self):
+        """ Number of audio channels """
+        return self._buffer.shape[1]
+
+    @property
+    def capacity(self):
+        """ Capacity of the queue in sample frames """
+        return self._buffer.shape[0]
+
+    @property
+    def size(self):
+        """ Number of sample frames in the queue """
+        return self._size
+
+    @property
+    def free_space(self):
+        """ Amount of free space in the queue in sample frames """
+        return self.capacity - self.size
+
+    def put(self, buffer):
+        """ Add a buffer to the queue.
+
+        The buffer is assumed to be 32-bit floating point interleaved data
+        with the same number of channels as the queue.
+
+        Parameters
+        ----------
+        buffer : Gst.Buffer
+            Buffer to add to the queue
+        """
+        frame_count = buffer.get_size() // self.channels // sample_dtype().itemsize
+        if frame_count > self.free_space:
+            raise RuntimeError("Not enough space in AudioQueue")
+
+        end = self._start + self._size
+        first_chunk_size = min(frame_count, self.capacity - end)
+        if frame_count <= first_chunk_size:
+            copy_buffer(buffer, 0, self._buffer, end, frame_count)
+        else:
+            second_chunk_size = frame_count - first_chunk_size
+            copy_buffer(buffer, 0, self._buffer, end, first_chunk_size)
+            copy_buffer(buffer, first_chunk_size, self._buffer, 0, second_chunk_size)
+        self._size += frame_count
+
+    def get(self, frame_count):
+        """ Remove and return a chunk of audio from the queue.
+
+        Parameters
+        ----------
+        frame_count : int
+            Number of sample frames to retrieve
+
+        Returns
+        -------
+        numpy.ndarray
+            Retrieved sample frames as a frame_count x channels array
+        """
+        if frame_count > self._size:
+            raise RuntimeError("Not enough frames in AudioQueue")
+
+        chunk_end = self._start + frame_count
+        if chunk_end > self.capacity:
+            chunk_end -= self.capacity
+            chunk = np.concatenate((
+                self._buffer[self._start:],
+                self._buffer[:chunk_end]
+            ))
+        else:
+            chunk = self._buffer[self._start:chunk_end]
+        self._start = chunk_end
+        self._size -= frame_count
+
+        return chunk
+
+    def expand(self, new_capacity):
+        """ Increase the capacity of the queue.
+
+        Parameters
+        ----------
+        new_capacity : int
+            New capacity for the queue; must be larger than existing capacity
+        """
+        if new_capacity <= self.capacity:
+            raise RuntimeError("Decreasing AudioQueue capacity is not supported")
+
+        self._buffer = np.roll(self._buffer, -self._start, axis=0)
+        self._buffer.resize((new_capacity, self.channels))
+        self._start = 0
