@@ -1,29 +1,18 @@
 import pytest
 import numpy as np
-import gi
-gi.require_version('Gst', '1.0')
-from gi.repository import Gst
 
 from tunescope.audioinput import *
-
-
-Gst.init(None)
-
-
-def array_to_buffer(array):
-    """ Convert a NumPy array to a Gst.Buffer """
-    return Gst.Buffer.new_wrapped(array.tobytes())
 
 
 def test_copy_buffer():
 
     dtype = np.int32
 
-    # Make source Gst.Buffer
-    src = array_to_buffer(np.array([
+    # Make source buffer
+    src = np.array([
         [10, 20],
         [30, 40],
-    ], dtype=dtype))
+    ], dtype=dtype).tobytes()
 
     # Need a new dest array for each test
     def make_dest_array():
@@ -86,29 +75,29 @@ class TestAudioQueue(object):
     @pytest.fixture()
     def buf2(self):
         """ A 2-frame, 2-channel buffer """
-        return array_to_buffer(np.array([
+        return np.array([
             [0, 1],
             [2, 3]
-        ], dtype=sample_dtype))
+        ], dtype=sample_dtype).tobytes()
 
     @pytest.fixture()
     def buf3(self):
         """ A 3-frame, 2-channel buffer """
-        return array_to_buffer(np.array([
+        return np.array([
             [4, 5],
             [6, 7],
             [8, 9]
-        ], dtype=sample_dtype))
+        ], dtype=sample_dtype).tobytes()
 
     @pytest.fixture()
     def buf4(self):
         """ A 4-frame, 2-channel buffer """
-        return array_to_buffer(np.array([
+        return np.array([
             [10, 11],
             [12, 13],
             [14, 15],
             [16, 17],
-        ], dtype=sample_dtype))
+        ], dtype=sample_dtype).tobytes()
 
     def test_init(self, q4):
         assert q4.channels == 2
