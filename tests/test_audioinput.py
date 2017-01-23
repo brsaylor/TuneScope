@@ -161,7 +161,7 @@ class TestAudioQueue(object):
 
     def test_overfill(self, q4, buf3):
         q4.put(buf3)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(QueueFullError):
             q4.put(buf3)
 
     def test_overtake(self, q4, buf2):

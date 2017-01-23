@@ -42,6 +42,10 @@ def copy_buffer(src, src_pos, dest, dest_pos, length):
     dest_mem[d1:d2] = src_mem[s1:s2]
 
 
+class QueueFullError(Exception):
+    pass
+
+
 class AudioQueue(object):
     """ Queue for audio frames for re-buffering purposes.
 
@@ -97,7 +101,7 @@ class AudioQueue(object):
         """
         frame_count = len(buffer) // self.channels // sample_dtype().itemsize
         if frame_count > self.free_space:
-            raise RuntimeError("Not enough space in AudioQueue")
+            raise QueueFullError()
 
         end = self._start + self._size
         first_chunk_size = min(frame_count, self.capacity - end)
