@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 
 from tunescope.audioinput import *
 
@@ -195,3 +194,14 @@ class TestAudioQueue(object):
             [6, 7],
             [8, 9]
         ]))
+
+    # This used to cause the following error:
+    # ValueError: memoryview assignment: lvalue and rvalue have different structures
+    def test_wraparound_2(self, q4, buf2, buf3, buf4):
+        q4.put(buf3)
+        q4.get(3)
+        q4.put(buf2)
+        q4.get(2)
+        q4.put(buf4)
+        q4.get(3)
+        q4.put(buf3)

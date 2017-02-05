@@ -138,7 +138,7 @@ class AudioQueue(object):
             ))
         else:
             chunk = self._buffer[self._start:chunk_end]
-        self._start = chunk_end
+        self._start = chunk_end % self.capacity
         self._size -= frame_count
 
         return chunk
