@@ -1,2 +1,8 @@
-.idea
-.cache
+.idea/
+.cache/
+build/
+TuneScope.egg-info/
+
+*.pyc
+*.so
+tunescope/audiodecoder.c
