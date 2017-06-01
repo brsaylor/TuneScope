@@ -11,11 +11,16 @@ cdef extern from "audiodecoder-gst.c":
         size_t size
         float *samples
 
+    ctypedef struct AudioDecoderMetadata:
+        int channels
+        int samplerate
+
     ctypedef struct AudioDecoderHandle:
         pass
 
     AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
+    AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
     int audiodecoder_gst_is_eos(AudioDecoderHandle *handle)
     void audiodecoder_gst_delete(AudioDecoderHandle *handle)
 
@@ -27,13 +32,13 @@ cdef class AudioDecoder:
     """
 
     cdef AudioDecoderHandle *handle
-    cdef int x
+    cdef AudioDecoderMetadata *metadata;
 
     def __cinit__(self, filename):
         if not os.path.isfile(filename):
             raise IOError("No such file: '{}'".format(filename))
         self.handle = audiodecoder_gst_new(filename)
-        self.x = 123
+        self.metadata = audiodecoder_gst_get_metadata(self.handle)
 
     cpdef bint is_eos(self):
         """ Return True if end-of-stream has been reached """
@@ -58,6 +63,14 @@ cdef class AudioDecoder:
         samples_array_view[...] = samples_view
 
         return samples_array
+
+    @property
+    def channels(self):
+        return self.metadata.channels
+
+    @property
+    def samplerate(self):
+        return self.metadata.samplerate
 
     def __dealloc__(self):
         if self.handle != NULL:

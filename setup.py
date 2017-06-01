@@ -1,6 +1,7 @@
 from os import path
 from codecs import open  # To use a consistent encoding
 import glob
+import pprint
 
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
@@ -13,7 +14,8 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-compiler_args = pkgconfig.parse('gstreamer-1.0 gstreamer-app-1.0')
+compiler_args = pkgconfig.parse('gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
+pprint.pprint(compiler_args)
 compiler_args['include_dirs'].append(np.get_include())
 extensions = [
     Extension('tunescope.audiodecoder', ['tunescope/audiodecoder.pyx'], **compiler_args)

@@ -21,21 +21,29 @@ typedef struct {
 } AudioDecoderBuffer;
 
 
+// Audio file metadata
+typedef struct {
+    int channels;
+    int samplerate;
+} AudioDecoderMetadata;
+
+
 // A handle for a decoding pipeline for an individual file.
-// Each instance of AudioDecoder has one of these.
+// Each instance of AudioDecoder has an opaque pointer to one of these.
 typedef struct {
     GstElement *pipeline, *source, *decoder, *converter, *appsink;
     AudioDecoderBuffer buffer;
+    AudioDecoderMetadata metadata;
 } AudioDecoderHandle;
 
 
 // Links the decoder to the converter when the audio source pad appears on the decoder
 static void on_pad_added(GstElement *element, GstPad *pad, gpointer data)
 {
-    GstElement *converter = (GstElement *) data;
+    AudioDecoderHandle *handle = (AudioDecoderHandle *) data;
 
     // Only link once
-    GstPad *sinkpad = gst_element_get_static_pad(converter, "sink");
+    GstPad *sinkpad = gst_element_get_static_pad(handle->converter, "sink");
     if (GST_PAD_IS_LINKED (sinkpad)) {
         g_object_unref (sinkpad);
         return;
@@ -49,6 +57,18 @@ static void on_pad_added(GstElement *element, GstPad *pad, gpointer data)
         gst_object_unref(sinkpad);
         return;
     }
+
+    // Get audio info
+    GstAudioInfo audio_info;
+    if (!gst_audio_info_from_caps(&audio_info, caps)) {
+        g_error("Could not get audio info from file\n");
+        gst_caps_unref(caps);
+        gst_object_unref(sinkpad);
+        return;
+    }
+    handle->metadata.channels = GST_AUDIO_INFO_CHANNELS(&audio_info);
+    handle->metadata.samplerate = GST_AUDIO_INFO_RATE(&audio_info);
+
     gst_caps_unref(caps);
 
     gst_pad_link(pad, sinkpad);
@@ -67,6 +87,8 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     }
 
     AudioDecoderHandle *handle = (AudioDecoderHandle *) g_malloc0(sizeof(AudioDecoderHandle));
+    handle->metadata.channels = 0;
+    handle->metadata.samplerate = 0;
 
     // Initialize output buffer
     handle->buffer.samples = g_malloc0(BUFFER_INITIAL_CAPACITY * sizeof(float));
@@ -115,7 +137,7 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     // Link elements
     gst_element_link(handle->source, handle->decoder);
     gst_element_link(handle->converter, handle->appsink);
-    g_signal_connect(handle->decoder, "pad-added", G_CALLBACK(on_pad_added), handle->converter);
+    g_signal_connect(handle->decoder, "pad-added", G_CALLBACK(on_pad_added), handle);
 
     // Start the pipeline
     gst_pipeline_use_clock(handle->pipeline, NULL);  // Make pipeline run as fast as possible
@@ -128,6 +150,9 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     //    glib_main_loop_started = TRUE;
     //    g_printerr("started main loop \n");
     //}
+    
+    // Ensure audio metadata is ready (i.e. on_pad_added() gets called)
+    gst_app_sink_pull_preroll(handle->appsink);
 
     return handle;
 }
@@ -163,6 +188,12 @@ AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
     gst_sample_unref(sample);
 
     return &(handle->buffer);
+}
+
+
+AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
+{
+    return &(handle->metadata);
 }
 
 

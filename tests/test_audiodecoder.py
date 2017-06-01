@@ -9,6 +9,7 @@ from tunescope.audiodecoder import AudioDecoder
 # TODO: Test reading audio from video files
 
 CHANNELS = 2
+SAMPLERATE = 44100
 
 
 @pytest.fixture(scope='session')
@@ -16,7 +17,7 @@ def wav_file(tmpdir_factory):
     """ Create a WAV file with 10 seconds of noise """
     channels = CHANNELS
     samplewidth = 2
-    samplerate = 44100
+    samplerate = SAMPLERATE
     duration = 10  # seconds
     file_path = str(tmpdir_factory.mktemp('audio').join('test.wav'))
     writer = wave.open(file_path, mode='wb')
@@ -57,6 +58,12 @@ def test_read(wav_file):
 
     with pytest.raises(EOFError):
         decoder.read()
+
+
+def test_basic_metadata(wav_file):
+    decoder = AudioDecoder(wav_file)
+    assert decoder.channels == CHANNELS
+    assert decoder.samplerate == SAMPLERATE
 
 
 def test_delete(wav_file):
