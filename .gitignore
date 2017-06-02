@@ -6,3 +6,4 @@ TuneScope.egg-info/
 *.pyc
 *.so
 tunescope/audiodecoder.c
+tunescope/buffering.c
