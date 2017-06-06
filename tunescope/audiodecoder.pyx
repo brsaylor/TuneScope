@@ -51,7 +51,7 @@ cdef class AudioDecoder:
         """
         cdef AudioDecoderBuffer *buf = audiodecoder_gst_read(self.handle)
         if buf == NULL:
-            raise EOFError
+            raise EOFError()
 
         # Get the samples as a memoryview slice
         cdef float[:] samples_view = <float[:buf.size]> buf.samples

@@ -78,3 +78,59 @@ cdef class StreamBuffer:
         self._data = np.resize(self._data, new_capacity)
         self.capacity = new_capacity
         self._start = 0
+
+
+cdef class DecoderBuffer:
+    """
+    Buffers the output of an AudioDecoder
+    to allow reading blocks of arbitrary size.
+    """
+
+    cdef _decoder  # This is normally an AudioDecoder, but omit type to allow a test double
+    cdef StreamBuffer _stream_buffer
+
+    def __cinit__(self, decoder, initial_capacity):
+        """ Create a DecoderBuffer with the given AudioDecoder `decoder`.
+        The internal buffer will be able to hold `initial_capacity` samples,
+        and will be expanded as necessary. """
+
+        self._decoder = decoder
+        self._stream_buffer = StreamBuffer(initial_capacity, np.float32)
+
+    cpdef np.ndarray read(self, size_t sample_count):
+        """ Read a block of `sample_count` samples from the decoder,
+        raising EOFError if there are no more sample to be read.
+        The last block of the stream is zero-padded if necessary. """
+
+        if self.is_eos():
+            raise EOFError()
+
+        self._fill_stream_buffer(sample_count)
+        block = self._stream_buffer.get(sample_count)
+        if len(block) < sample_count:
+            block = self._pad_block(block, sample_count)
+        return block
+
+    cpdef bint is_eos(self):
+        """ Return True if end-of-stream has been reached
+        and buffer has been emptied """
+        return self._decoder.is_eos() and self._stream_buffer.size == 0
+
+    cdef _fill_stream_buffer(self, size_t target_size):
+        cdef np.ndarray input_block
+        cdef size_t free_space
+        cdef size_t required_capacity
+
+        while self._stream_buffer.size < target_size and not self._decoder.is_eos():
+            input_block = self._decoder.read()
+            free_space = self._stream_buffer.capacity - self._stream_buffer.size
+            if len(input_block) > free_space:
+                required_capacity = self._stream_buffer.capacity + len(input_block)
+                self._stream_buffer.expand(required_capacity)
+            self._stream_buffer.put(input_block)
+
+    cdef np.ndarray _pad_block(self, np.ndarray block, size_t target_size):
+        padded_block = np.empty(target_size, dtype=np.float32)
+        padded_block[:len(block)] = block
+        padded_block[len(block):] = 0
+        return padded_block
