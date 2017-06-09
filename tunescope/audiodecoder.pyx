@@ -3,6 +3,8 @@ import os.path
 import numpy as np
 cimport numpy as np
 
+from tunescope cimport audiobackend
+
 
 cdef extern from "audiodecoder-gst.c":
 
@@ -25,7 +27,6 @@ cdef extern from "audiodecoder-gst.c":
     void audiodecoder_gst_delete(AudioDecoderHandle *handle)
 
 
-# TODO: Make this implement a context manager
 cdef class AudioDecoder:
     """
     Decodes audio data and metadata from a file
@@ -37,6 +38,7 @@ cdef class AudioDecoder:
     def __cinit__(self, filename):
         if not os.path.isfile(filename):
             raise IOError("No such file: '{}'".format(filename))
+        audiobackend.initialize_if_not_initialized()
         self.handle = audiodecoder_gst_new(filename)
         self.metadata = audiodecoder_gst_get_metadata(self.handle)
 

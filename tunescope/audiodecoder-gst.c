@@ -8,10 +8,6 @@
 
 #define BUFFER_INITIAL_CAPACITY 64
 
-gboolean gstreamer_initialized = FALSE;
-gboolean glib_main_loop_started = FALSE;
-GMainLoop *glib_main_loop = NULL;
-
 
 // A buffer containing audio samples in 32-bit float format
 typedef struct {
@@ -80,12 +76,6 @@ static void on_pad_added(GstElement *element, GstPad *pad, gpointer data)
 // and return a handle to it
 AudioDecoderHandle *audiodecoder_gst_new(char *filename)
 {
-    if (!gstreamer_initialized) {
-        gst_init(NULL, NULL);
-        glib_main_loop = g_main_loop_new (NULL, FALSE);
-        gstreamer_initialized = TRUE;
-    }
-
     AudioDecoderHandle *handle = (AudioDecoderHandle *) g_malloc0(sizeof(AudioDecoderHandle));
     handle->metadata.channels = 0;
     handle->metadata.samplerate = 0;
@@ -143,14 +133,6 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     gst_pipeline_use_clock(handle->pipeline, NULL);  // Make pipeline run as fast as possible
     gst_element_set_state(handle->pipeline, GST_STATE_PLAYING);
 
-    // TODO
-    //if (!glib_main_loop_started) {
-    //    g_printerr("starting main loop \n");
-    //    g_main_loop_run(glib_main_loop);
-    //    glib_main_loop_started = TRUE;
-    //    g_printerr("started main loop \n");
-    //}
-    
     // Ensure audio metadata is ready (i.e. on_pad_added() gets called)
     gst_app_sink_pull_preroll(handle->appsink);
 
