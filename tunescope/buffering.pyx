@@ -2,10 +2,14 @@ import numpy as np
 cimport numpy as np
 
 
+# FIXME: Add type info to arrays for more efficient indexing.
+# Probably have to fix dtype then.
+
 cdef class StreamBuffer:
     """
     A queue for buffering streaming data represented as 1-dimensional
     NumPy arrays. Input and output array sizes are independent and can vary.
+    Implemented as a ring buffer.
     """
 
     cdef readonly size_t capacity
@@ -32,15 +36,8 @@ cdef class StreamBuffer:
             return False
 
         cdef size_t end = self._start + self.size
-        cdef size_t first_chunk_size = min(len(data), self.capacity - end)
-        cdef size_t second_chunk_size
-
-        if len(data) <= first_chunk_size:
-            self._data[end:end+len(data)] = data
-        else:
-            second_chunk_size = len(data) - first_chunk_size
-            self._data[end:] = data[:first_chunk_size]
-            self._data[:second_chunk_size] = data[first_chunk_size:]
+        for i in range(len(data)):
+            self._data[(end + i) % self.capacity] = data[i]
         self.size += len(data)
 
         return True
@@ -52,19 +49,14 @@ cdef class StreamBuffer:
         """
         count = min(self.size, count)
 
-        cdef np.ndarray chunk
-        cdef chunk_end = self._start + count
+        cdef np.ndarray output_block = np.empty(count, dtype=self._data.dtype)
+        for i in range(count):
+            output_block[i] = self._data[(self._start + i) % self.capacity]
 
-        if chunk_end > self.capacity:
-            chunk_end -= self.capacity
-            chunk = np.concatenate((self._data[self._start:],
-                                    self._data[:chunk_end]))
-        else:
-            chunk = self._data[self._start:chunk_end]
-        self._start = chunk_end % self.capacity
+        self._start = (self._start + count) % self.capacity
         self.size -= count
 
-        return chunk
+        return output_block
 
     cpdef expand(self, size_t new_capacity):
         """
@@ -96,6 +88,14 @@ cdef class DecoderBuffer:
 
         self._decoder = decoder
         self._stream_buffer = StreamBuffer(initial_capacity, np.float32)
+
+    @property
+    def channels(self):
+        return self._decoder.channels
+
+    @property
+    def samplerate(self):
+        return self._decoder.samplerate
 
     cpdef np.ndarray read(self, size_t sample_count):
         """ Read a block of `sample_count` samples from the decoder,
