@@ -7,6 +7,7 @@
 #include <glib.h>
 
 #define BUFFER_INITIAL_CAPACITY 64
+#define EOS_DUMMY_BUFFER_SIZE_SAMPLES BUFFER_INITIAL_CAPACITY
 
 
 // A buffer containing audio samples in 32-bit float format
@@ -46,7 +47,7 @@ static void on_pad_added(GstElement *element, GstPad *pad, gpointer data)
     }
 
     // Only link if audio
-    GstCaps *caps = gst_pad_query_caps(pad, NULL);
+    GstCaps *caps = gst_pad_get_current_caps(pad);
     GstStructure *str = gst_caps_get_structure (caps, 0);
     if (!g_strrstr(gst_structure_get_name(str), "audio")) {
         gst_caps_unref(caps);
@@ -146,9 +147,23 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
 // Treat the returned buffer as read-only.
 AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
 {
+    gboolean eos_reported = gst_app_sink_is_eos(handle->appsink);
+
     GstSample *sample = gst_app_sink_pull_sample(handle->appsink);
-    if (sample == NULL)
-        return NULL;
+    if (sample == NULL) {
+        if (eos_reported) {
+            return NULL;
+        } else {
+            // AppSink returned a NULL sample even though it
+            // didn't report it was at end-of-stream.
+            // This happens sometimes.
+            // Return a dummy buffer to the caller instead of returning NULL.
+            handle->buffer.size = EOS_DUMMY_BUFFER_SIZE_SAMPLES;
+            memset(handle->buffer.samples,
+                   0, EOS_DUMMY_BUFFER_SIZE_SAMPLES * sizeof(float));
+            return &(handle->buffer);
+        }
+    }
 
     GstBuffer* gst_buffer = gst_sample_get_buffer(sample);
 	GstMapInfo map;

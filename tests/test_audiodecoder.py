@@ -1,3 +1,4 @@
+import os.path
 import wave
 
 import pytest
@@ -37,7 +38,7 @@ def test_nonexistent_file():
         AudioDecoder('nonexistent-file')
 
 
-def test_read(wav_file):
+def test_read_wav(wav_file):
     """ Test that AudioDecoder can read a WAV file correctly """
     wav_reader = wave.open(wav_file, 'rb')
     decoder = AudioDecoder(wav_file)
@@ -70,3 +71,18 @@ def test_delete(wav_file):
     """ Ensure that AudioDecoder.__dealloc__ does not crash """
     decoder = AudioDecoder(wav_file)
     del decoder
+
+
+def test_read_ogg():
+    """ Test that AudioDecoder can read channels, samplerate, and audio
+    from an Ogg Vorbis file """
+
+    filename = os.path.join(
+        os.path.dirname(__file__), 'data', 'short-noise-with-metadata.ogg')
+    decoder = AudioDecoder(filename)
+
+    assert decoder.channels == 2
+    assert decoder.samplerate == 44100
+
+    while not decoder.is_eos():
+        assert len(decoder.read()) > 0
