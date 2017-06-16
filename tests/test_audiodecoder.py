@@ -85,4 +85,5 @@ def test_read_ogg():
     assert decoder.samplerate == 44100
 
     while not decoder.is_eos():
+        # FIXME: This occasionally fails
         assert len(decoder.read()) > 0

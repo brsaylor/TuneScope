@@ -1,7 +1,5 @@
 from os import path
 from codecs import open  # To use a consistent encoding
-import glob
-import pprint
 
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
@@ -23,6 +21,9 @@ audiodecoder_compiler_args['include_dirs'].append(np.get_include())
 
 buffering_compiler_args = {'include_dirs': [np.get_include()]}
 
+audiooutput_compiler_args = pkgconfig.parse('sdl2')
+audiooutput_compiler_args['include_dirs'].append(np.get_include())
+
 extensions = [
     Extension('tunescope.audiobackend',
               ['tunescope/audiobackend.pyx'],
@@ -35,6 +36,10 @@ extensions = [
     Extension('tunescope.buffering',
               ['tunescope/buffering.pyx'],
               **buffering_compiler_args),
+
+    Extension('tunescope.audiooutput',
+              ['tunescope/audiooutput.pyx'],
+              **audiooutput_compiler_args),
 ]
 
 setup(

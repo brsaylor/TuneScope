@@ -8,3 +8,4 @@ TuneScope.egg-info/
 *.c
 
 !audiodecoder-gst.c
+!audiooutput-sdl.c
