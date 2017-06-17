@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 
 from tunescope.buffering import StreamBuffer, DecoderBuffer
+from test_doubles import FakeAudioDecoder
 
 default_dtype = np.array([1]).dtype
 
@@ -103,41 +104,6 @@ class TestStreamBuffer(object):
         # sb now contains 2 3 4 5 _
         out4 = sb.get(4)
         assert np.all(out4 == np.array([2, 3, 4, 5]))
-
-
-class FakeAudioDecoder(object):
-    """ Test double for AudioDecoder """
-
-    def __init__(self, blocks):
-        """ `blocks` is a list of lists representing the blocks of samples
-        returned by each call to read() """
-        self._blocks = (np.array(values) for values in blocks)
-        self._blocks_remaining = len(blocks)
-
-    def read(self):
-        if self._blocks_remaining <= 0:
-            raise EOFError
-        self._blocks_remaining -= 1
-        return next(self._blocks)
-
-    def is_eos(self):
-        return self._blocks_remaining == 0
-
-
-class TestFakeAudioDecoder(object):
-
-    def test_read_empty_stream(self):
-        fake_decoder = FakeAudioDecoder([])
-        with pytest.raises(EOFError):
-            fake_decoder.read()
-        assert fake_decoder.is_eos()
-
-    def test_read_entire_stream(self):
-        fake_decoder = FakeAudioDecoder([[1, 2], [3, 4]])
-        data_read = []
-        while not fake_decoder.is_eos():
-            data_read += list(fake_decoder.read())
-        assert data_read == [1, 2, 3, 4]
 
 
 class TestDecoderBuffer(object):
