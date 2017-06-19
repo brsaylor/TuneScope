@@ -1,14 +1,13 @@
 import numpy as np
 cimport numpy as np
 
+from tunescope.audioutil cimport pad_block
 
-# FIXME: Add type info to arrays for more efficient indexing.
-# Probably have to fix dtype then.
 
 cdef class StreamBuffer:
     """
     A queue for buffering streaming data represented as 1-dimensional
-    NumPy arrays. Input and output array sizes are independent and can vary.
+    NumPy float32 arrays. Input and output array sizes are independent and can vary.
     Implemented as a ring buffer.
     """
 
@@ -18,16 +17,16 @@ cdef class StreamBuffer:
     cdef readonly size_t size
     """ Current number of elements the buffer holds """
 
-    cdef np.ndarray _data
+    cdef np.ndarray _buffer
     cdef size_t _start
 
-    def __cinit__(self, capacity, dtype):
-        self._data = np.zeros(capacity, dtype=dtype)
+    def __cinit__(self, size_t capacity):
+        self._buffer = np.zeros(capacity, dtype=np.float32)
         self.capacity = capacity
         self.size = 0
         self._start = 0
     
-    cpdef bint put(self, np.ndarray data):
+    cpdef bint put(self, np.ndarray[np.float32_t] data):
         """
         Add data to queue.
         Return False if there isn't enough space; True otherwise.
@@ -35,9 +34,11 @@ cdef class StreamBuffer:
         if len(data) > self.capacity - self.size:
             return False
 
+        cdef float [:] buffer_view = self._buffer
         cdef size_t end = self._start + self.size
+        cdef int i
         for i in range(len(data)):
-            self._data[(end + i) % self.capacity] = data[i]
+            buffer_view[(end + i) % self.capacity] = data[i]
         self.size += len(data)
 
         return True
@@ -49,9 +50,11 @@ cdef class StreamBuffer:
         """
         count = min(self.size, count)
 
-        cdef np.ndarray output_block = np.empty(count, dtype=self._data.dtype)
+        cdef float [:] buffer_view = self._buffer
+        cdef np.ndarray[np.float32_t] output_block = np.empty(count, dtype=np.float32)
+        cdef int i
         for i in range(count):
-            output_block[i] = self._data[(self._start + i) % self.capacity]
+            output_block[i] = buffer_view[(self._start + i) % self.capacity]
 
         self._start = (self._start + count) % self.capacity
         self.size -= count
@@ -66,8 +69,8 @@ cdef class StreamBuffer:
         """
         if new_capacity <= self.capacity:
             return
-        self._data = np.roll(self._data, -1 * <long> self._start)
-        self._data = np.resize(self._data, new_capacity)
+        self._buffer = np.roll(self._buffer, -1 * <long> self._start)
+        self._buffer = np.resize(self._buffer, new_capacity)
         self.capacity = new_capacity
         self._start = 0
 
@@ -78,16 +81,16 @@ cdef class DecoderBuffer:
     to allow reading blocks of arbitrary size.
     """
 
-    cdef _decoder  # This is normally an AudioDecoder, but omit type to allow a test double
+    cdef object _decoder  # Normally an AudioDecoder, but `object` here to allow a test double
     cdef StreamBuffer _stream_buffer
 
-    def __cinit__(self, decoder, initial_capacity):
+    def __cinit__(self, object decoder, size_t initial_capacity):
         """ Create a DecoderBuffer with the given AudioDecoder `decoder`.
         The internal buffer will be able to hold `initial_capacity` samples,
         and will be expanded as necessary. """
 
         self._decoder = decoder
-        self._stream_buffer = StreamBuffer(initial_capacity, np.float32)
+        self._stream_buffer = StreamBuffer(initial_capacity)
 
     @property
     def channels(self):
@@ -106,9 +109,9 @@ cdef class DecoderBuffer:
             raise EOFError()
 
         self._fill_stream_buffer(sample_count)
-        block = self._stream_buffer.get(sample_count)
+        cdef np.ndarray[np.float32_t] block = self._stream_buffer.get(sample_count)
         if len(block) < sample_count:
-            block = self._pad_block(block, sample_count)
+            block = pad_block(block, sample_count)
         return block
 
     cpdef bint is_eos(self):
@@ -117,7 +120,7 @@ cdef class DecoderBuffer:
         return self._decoder.is_eos() and self._stream_buffer.size == 0
 
     cdef _fill_stream_buffer(self, size_t target_size):
-        cdef np.ndarray input_block
+        cdef np.ndarray[np.float32_t] input_block
         cdef size_t free_space
         cdef size_t required_capacity
 
@@ -128,9 +131,3 @@ cdef class DecoderBuffer:
                 required_capacity = self._stream_buffer.capacity + len(input_block)
                 self._stream_buffer.expand(required_capacity)
             self._stream_buffer.put(input_block)
-
-    cdef np.ndarray _pad_block(self, np.ndarray block, size_t target_size):
-        padded_block = np.empty(target_size, dtype=np.float32)
-        padded_block[:len(block)] = block
-        padded_block[len(block):] = 0
-        return padded_block

@@ -89,7 +89,7 @@ class FakeAudioDecoder(object):
     def __init__(self, blocks):
         """ `blocks` is a list of lists representing the blocks of samples
         returned by each call to read() """
-        self._blocks = (np.array(values) for values in blocks)
+        self._blocks = (np.array(values, dtype=np.float32) for values in blocks)
         self._blocks_remaining = len(blocks)
 
     def read(self):

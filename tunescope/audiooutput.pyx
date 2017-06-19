@@ -1,6 +1,8 @@
 import numpy as np
 cimport numpy as np
 
+from tunescope.audioutil cimport pad_block
+
 
 cdef extern from "Python.h":
     void PyEval_InitThreads()
@@ -72,26 +74,18 @@ cdef class AudioOutput:
         # Calling Python code from a C thread callback requires acquiring the GIL
         # (otherwise, it crashes).
 
-        cdef np.ndarray samples
+        cdef np.ndarray[np.float32_t] samples
 
         if self._audio_source.is_eos():
             samples = np.zeros(sample_count, dtype=np.float32)
         else:
             samples = self._audio_source.read(sample_count)
             if len(samples) < sample_count:
-                samples = self._pad_block(samples, sample_count)
+                samples = pad_block(samples, sample_count)
 
-
-        # FIXME: Type the samples array to make this more efficient
+        cdef int i
         for i in range(sample_count):
             block[i] = samples[i]
-
-    # FIXME: This is copied from buffering.pyx -- refactor into common module
-    cdef np.ndarray _pad_block(self, np.ndarray block, size_t target_size):
-        padded_block = np.empty(target_size, dtype=np.float32)
-        padded_block[:len(block)] = block
-        padded_block[len(block):] = 0
-        return padded_block
 
 
 def reinitialize():

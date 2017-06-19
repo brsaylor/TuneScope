@@ -19,8 +19,6 @@ audiodecoder_compiler_args = pkgconfig.parse(
     'gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
 audiodecoder_compiler_args['include_dirs'].append(np.get_include())
 
-buffering_compiler_args = {'include_dirs': [np.get_include()]}
-
 audiooutput_compiler_args = pkgconfig.parse('sdl2')
 audiooutput_compiler_args['include_dirs'].append(np.get_include())
 
@@ -29,13 +27,17 @@ extensions = [
               ['tunescope/audiobackend.pyx'],
               **audiobackend_compiler_args),
 
+    Extension('tunescope.audioutil',
+              ['tunescope/audioutil.pyx'],
+              include_dirs=[np.get_include()]),
+
     Extension('tunescope.audiodecoder',
               ['tunescope/audiodecoder.pyx'],
               **audiodecoder_compiler_args),
 
     Extension('tunescope.buffering',
               ['tunescope/buffering.pyx'],
-              **buffering_compiler_args),
+              include_dirs=[np.get_include()]),
 
     Extension('tunescope.audiooutput',
               ['tunescope/audiooutput.pyx'],

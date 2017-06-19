@@ -32,26 +32,26 @@ cdef class AudioDecoder:
     Decodes audio data and metadata from a file
     """
 
-    cdef AudioDecoderHandle *handle
-    cdef AudioDecoderMetadata *metadata;
+    cdef AudioDecoderHandle *_handle
+    cdef AudioDecoderMetadata *_metadata;
 
     def __cinit__(self, filename):
         if not os.path.isfile(filename):
             raise IOError("No such file: '{}'".format(filename))
         audiobackend.initialize_if_not_initialized()
-        self.handle = audiodecoder_gst_new(filename)
-        self.metadata = audiodecoder_gst_get_metadata(self.handle)
+        self._handle = audiodecoder_gst_new(filename)
+        self._metadata = audiodecoder_gst_get_metadata(self._handle)
 
     cpdef bint is_eos(self):
         """ Return True if end-of-stream has been reached """
-        return audiodecoder_gst_is_eos(self.handle)
+        return audiodecoder_gst_is_eos(self._handle)
 
-    cpdef np.ndarray read(self):
+    cpdef np.ndarray[np.float32_t] read(self):
         """
         Read a block of 32-bit float audio samples from the file as a numpy.ndarray.
         The number of samples returned is not configurable and may vary.
         """
-        cdef AudioDecoderBuffer *buf = audiodecoder_gst_read(self.handle)
+        cdef AudioDecoderBuffer *buf = audiodecoder_gst_read(self._handle)
         if buf == NULL:
             raise EOFError()
 
@@ -68,12 +68,12 @@ cdef class AudioDecoder:
 
     @property
     def channels(self):
-        return self.metadata.channels
+        return self._metadata.channels
 
     @property
     def samplerate(self):
-        return self.metadata.samplerate
+        return self._metadata.samplerate
 
     def __dealloc__(self):
-        if self.handle != NULL:
-            audiodecoder_gst_delete(self.handle)
+        if self._handle != NULL:
+            audiodecoder_gst_delete(self._handle)
