@@ -48,18 +48,17 @@ cdef class AudioDecoder:
 
     cpdef np.ndarray[np.float32_t] read(self):
         """
-        Read a block of 32-bit float audio samples from the file as a numpy.ndarray.
+        Read a block of 32-bit float channel-interleaved audio samples
+        from the file as a numpy.ndarray.
         The number of samples returned is not configurable and may vary.
+        If called beyond the end of the stream, a zero-filled array is returned.
         """
         cdef AudioDecoderBuffer *buf = audiodecoder_gst_read(self._handle)
-        if buf == NULL:
-            raise EOFError()
 
         # Get the samples as a memoryview slice
         cdef float[:] samples_view = <float[:buf.size]> buf.samples
 
         # Copy the samples to a NumPy array
-        # TODO: Avoid copying?
         samples_array = np.empty((buf.size,), dtype=np.float32)
         cdef float[:] samples_array_view = samples_array
         samples_array_view[...] = samples_view

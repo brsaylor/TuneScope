@@ -7,7 +7,6 @@
 #include <glib.h>
 
 #define BUFFER_INITIAL_CAPACITY 64
-#define EOS_DUMMY_BUFFER_SIZE_SAMPLES BUFFER_INITIAL_CAPACITY
 
 
 // A buffer containing audio samples in 32-bit float format
@@ -105,8 +104,8 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
                 "channels", GST_TYPE_INT_RANGE, 1, 16,
                 "rate", GST_TYPE_INT_RANGE, 8000, 96000,
                 NULL);
-    gst_app_sink_set_caps(handle->appsink, caps);
-    gst_app_sink_set_max_buffers(handle->appsink, 1);
+    gst_app_sink_set_caps(GST_APP_SINK(handle->appsink), caps);
+    gst_app_sink_set_max_buffers(GST_APP_SINK(handle->appsink), 1);
 
     // Set file source
     g_object_set(G_OBJECT(handle->source), "location", filename, NULL);
@@ -131,38 +130,28 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     g_signal_connect(handle->decoder, "pad-added", G_CALLBACK(on_pad_added), handle);
 
     // Start the pipeline
-    gst_pipeline_use_clock(handle->pipeline, NULL);  // Make pipeline run as fast as possible
+    gst_pipeline_use_clock(GST_PIPELINE(handle->pipeline), NULL);  // Make pipeline run as fast as possible
     gst_element_set_state(handle->pipeline, GST_STATE_PLAYING);
 
     // Ensure audio metadata is ready (i.e. on_pad_added() gets called)
-    gst_app_sink_pull_preroll(handle->appsink);
+    gst_app_sink_pull_preroll(GST_APP_SINK(handle->appsink));
 
     return handle;
 }
 
 
 // Read a block of audio samples from the file as 32-bit floats.
-// Return NULL if no more samples can be read.
 // The number of samples returned cannot be controlled and may vary (a GStreamer limitation).
+// If called beyond the end of the stream, a zero-filled buffer is returned.
 // Treat the returned buffer as read-only.
 AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
 {
-    gboolean eos_reported = gst_app_sink_is_eos(handle->appsink);
-
-    GstSample *sample = gst_app_sink_pull_sample(handle->appsink);
+    GstSample *sample = gst_app_sink_pull_sample(GST_APP_SINK(handle->appsink));
     if (sample == NULL) {
-        if (eos_reported) {
-            return NULL;
-        } else {
-            // AppSink returned a NULL sample even though it
-            // didn't report it was at end-of-stream.
-            // This happens sometimes.
-            // Return a dummy buffer to the caller instead of returning NULL.
-            handle->buffer.size = EOS_DUMMY_BUFFER_SIZE_SAMPLES;
-            memset(handle->buffer.samples,
-                   0, EOS_DUMMY_BUFFER_SIZE_SAMPLES * sizeof(float));
-            return &(handle->buffer);
-        }
+        // No more audio to be decoded: send an empty buffer downstream
+        handle->buffer.size = handle->buffer.capacity;
+        memset(handle->buffer.samples, 0, handle->buffer.size * sizeof(float));
+        return &(handle->buffer);
     }
 
     GstBuffer* gst_buffer = gst_sample_get_buffer(sample);
@@ -198,7 +187,7 @@ AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
 // otherwise 0
 int audiodecoder_gst_is_eos(AudioDecoderHandle *handle)
 {
-    return (int) gst_app_sink_is_eos(handle->appsink);
+    return (int) gst_app_sink_is_eos(GST_APP_SINK(handle->appsink));
 }
 
 

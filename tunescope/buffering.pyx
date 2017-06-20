@@ -100,13 +100,12 @@ cdef class DecoderBuffer:
     def samplerate(self):
         return self._decoder.samplerate
 
-    cpdef np.ndarray read(self, size_t sample_count):
+    cpdef np.ndarray[np.float32_t] read(self, size_t sample_count):
         """ Read a block of `sample_count` samples from the decoder,
-        raising EOFError if there are no more sample to be read.
-        The last block of the stream is zero-padded if necessary. """
+        returning zeros beyond the end of the stream. """
 
         if self.is_eos():
-            raise EOFError()
+            return np.zeros(sample_count, dtype=np.float32)
 
         self._fill_stream_buffer(sample_count)
         cdef np.ndarray[np.float32_t] block = self._stream_buffer.get(sample_count)

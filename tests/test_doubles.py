@@ -7,6 +7,8 @@ import threading
 import pytest
 import numpy as np
 
+from tunescope.audioutil import pad_block
+
 
 class FakeAudioSource(object):
     """
@@ -15,7 +17,7 @@ class FakeAudioSource(object):
     Audio source objects have properties `channels` and `samplerate`
     and methods `is_eos()` and `read(sample_count)`,
     which returns a NumPy float32 array of length `sample_count`.
-    Actual audio sources have include DecoderBuffer and TimeStretcher
+    Actual audio sources include DecoderBuffer and TimeStretcher.
 
     Beyond standard functionality,
     provides extra methods and attribute for testing:
@@ -35,12 +37,6 @@ class FakeAudioSource(object):
         self._eos_event = threading.Event()
 
     def read(self, sample_count):
-        samples_available = len(self._samples) - self._read_position
-        if samples_available <= 0:
-            raise EOFError()
-        elif sample_count > samples_available:
-            sample_count = samples_available
-
         start = self._read_position
         end = start + sample_count
         self._read_position = end
@@ -51,7 +47,7 @@ class FakeAudioSource(object):
         self.read_called = True
         self._read_event.set()
 
-        return self._samples[start:end]
+        return pad_block(self._samples[start:end], sample_count)
 
     def is_eos(self):
         return self._read_position >= len(self._samples)
@@ -73,10 +69,9 @@ def test_fake_audio_source():
     fake_source = FakeAudioSource(2, 44100, np.arange(5))
     assert np.all(fake_source.read(2) == np.array([0, 1]))
     assert np.all(fake_source.read(2) == np.array([2, 3]))
-    assert np.all(fake_source.read(2) == np.array([4]))
+    assert np.all(fake_source.read(2) == np.array([4, 0]))
     assert fake_source.is_eos()
-    with pytest.raises(EOFError):
-        fake_source.read(1)
+    assert np.all(fake_source.read(2) == np.array([0, 0]))
 
     # These should return immediately
     fake_source.wait_for_eos_with_timeout(0)
@@ -94,20 +89,21 @@ class FakeAudioDecoder(object):
 
     def read(self):
         if self._blocks_remaining <= 0:
-            raise EOFError()
+            return np.zeros(4, dtype=np.float32)
         self._blocks_remaining -= 1
         return next(self._blocks)
 
     def is_eos(self):
-        return self._blocks_remaining == 0
+        return self._blocks_remaining <= 0
 
 
 class TestFakeAudioDecoder(object):
 
     def test_read_empty_stream(self):
         fake_decoder = FakeAudioDecoder([])
-        with pytest.raises(EOFError):
-            fake_decoder.read()
+        block = fake_decoder.read()
+        assert len(block) > 0
+        assert np.all(block == 0)
         assert fake_decoder.is_eos()
 
     def test_read_entire_stream(self):

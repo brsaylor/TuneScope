@@ -114,8 +114,7 @@ class TestDecoderBuffer(object):
     def test_read_from_finished_stream(self):
         fake_decoder = FakeAudioDecoder([])
         buf = DecoderBuffer(fake_decoder, 4)
-        with pytest.raises(EOFError):
-            buf.read(1)
+        assert np.all(buf.read(1) == np.zeros(1))
 
     def test_read_single_block(self):
         fake_decoder = FakeAudioDecoder([[0, 1, 2, 3]])

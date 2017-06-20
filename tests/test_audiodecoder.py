@@ -57,8 +57,7 @@ def test_read_wav(wav_file):
 
     assert frames_read == total_frame_count
 
-    with pytest.raises(EOFError):
-        decoder.read()
+    assert np.all(decoder.read() == 0)
 
 
 def test_basic_metadata(wav_file):
