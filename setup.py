@@ -39,6 +39,11 @@ extensions = [
               ['tunescope/buffering.pyx'],
               include_dirs=[np.get_include()]),
 
+    Extension('tunescope.timestretcher',
+              ['tunescope/timestretcher.pyx'],
+              libraries=['rubberband'],
+              include_dirs=[np.get_include()]),
+
     Extension('tunescope.audiooutput',
               ['tunescope/audiooutput.pyx'],
               **audiooutput_compiler_args),
