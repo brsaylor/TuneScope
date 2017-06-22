@@ -23,6 +23,7 @@ cdef extern from "audiodecoder-gst.c":
     AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
     AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
+    int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
     int audiodecoder_gst_is_eos(AudioDecoderHandle *handle)
     void audiodecoder_gst_delete(AudioDecoderHandle *handle)
 
@@ -64,6 +65,11 @@ cdef class AudioDecoder:
         samples_array_view[...] = samples_view
 
         return samples_array
+
+    cpdef bint seek(self, double position):
+        """ Seek to the given position in seconds.
+        Return True on success, False on failure. """
+        return audiodecoder_gst_seek(self._handle, position)
 
     @property
     def channels(self):

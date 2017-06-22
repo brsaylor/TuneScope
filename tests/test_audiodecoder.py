@@ -86,3 +86,20 @@ def test_read_ogg():
     while not decoder.is_eos():
         # FIXME: This occasionally fails
         assert len(decoder.read()) > 0
+
+
+def test_seek(wav_file):
+    wav_reader = wave.open(wav_file, 'rb')
+    decoder = AudioDecoder(wav_file)
+
+    # Seek to 0:05
+    wav_reader.readframes(SAMPLERATE * 5)
+    assert decoder.seek(5.0)
+
+    # Compare WAV reader and AudioDecoder output after seek
+    decoder_samples = decoder.read()
+    assert len(decoder_samples) > 32  # Won't do much good to compare a tiny number of samples
+    wav_samples = np.frombuffer(
+        wav_reader.readframes(len(decoder_samples) / CHANNELS),
+        dtype='<i2').astype(np.float32) / 2.0 ** 15
+    assert np.allclose(decoder_samples, wav_samples)

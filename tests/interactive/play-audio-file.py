@@ -7,6 +7,16 @@ from tunescope.buffering import DecoderBuffer
 from tunescope.timestretcher import TimeStretcher
 from tunescope.audiooutput import AudioOutput
 
+
+def string_is_number(string):
+    try:
+        float(string)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
 parser = argparse.ArgumentParser(description=globals()['__doc__'])
 parser.add_argument('filename', help="Path to audio file")
 parser.add_argument('--speed', type=float)
@@ -29,6 +39,7 @@ playing = True  # FIXME: This should be an attribute of AudioOutput
 
 print("""
 <Enter>    - pause/play
+<number>   - seek to given time in seconds
 s <speed>  - set speed ratio
 p <pitch>  - set pitch ratio
 q          - quit
@@ -45,6 +56,8 @@ while True:
             playing = True
     elif input_string.startswith('q'):
         break
+    elif string_is_number(input_string):
+        decoder.seek(float(input_string))
     else:
         try:
             command, arg = input_string.split()

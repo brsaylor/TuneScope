@@ -183,6 +183,18 @@ AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
 }
 
 
+// Seek to the given position in seconds.
+// Return 1 on success, 0 on failure.
+int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
+{
+    return (int) gst_element_seek_simple(
+            handle->decoder,
+            GST_FORMAT_TIME,
+            GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT,
+            position * GST_SECOND);
+}
+
+
 // Return 1 if no more samples can be read because end of stream has been reached,
 // otherwise 0
 int audiodecoder_gst_is_eos(AudioDecoderHandle *handle)
