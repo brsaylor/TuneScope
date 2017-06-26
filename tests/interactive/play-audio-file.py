@@ -50,7 +50,7 @@ print("""
 <Enter>    - pause/play
 <number>   - seek to given time in seconds
 s <speed>  - set speed ratio
-p <pitch>  - set pitch ratio
+p <pitch>  - set pitch change in semitones
 q          - quit
 """)
 

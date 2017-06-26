@@ -110,7 +110,7 @@ cdef class TimeStretcher:
             rb.rubberband_set_time_ratio(self._rb_state, 1.0 / self._speed)
         if self._pitch_changed:
             self._pitch_changed = False
-            rb.rubberband_set_pitch_scale(self._rb_state, self._pitch)
+            rb.rubberband_set_pitch_scale(self._rb_state, 2 ** (self._pitch / 12))
 
     cdef void _process_more_input(self):
         # Transfer a block of input from the audio source
