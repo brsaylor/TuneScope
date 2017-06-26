@@ -1,3 +1,4 @@
+from __future__ import division
 import sys
 
 from kivy.app import App
@@ -43,7 +44,7 @@ class TuneScopeApp(App):
     """ Kivy application class """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(TuneScopeApp, self).__init__(**kwargs)
         self.player = None
 
     def build(self):
@@ -54,6 +55,9 @@ class TuneScopeApp(App):
     def format_time(t):
         seconds = int(t)
         return "{}:{:02d}".format(seconds // 60, seconds % 60)
+
+    def on_stop(self):
+        self.player.close_audio_device()
 
 
 if __name__ == '__main__':
