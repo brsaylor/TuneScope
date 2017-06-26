@@ -187,11 +187,52 @@ AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
 // Return 1 on success, 0 on failure.
 int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
 {
-    return (int) gst_element_seek_simple(
-            handle->decoder,
+    int success = gst_element_seek_simple(
+            handle->pipeline,
             GST_FORMAT_TIME,
-            GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT,
+            GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE,
+            //GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT,
             position * GST_SECOND);
+    if (!success) {
+        g_printerr("gst_element_seek_simple() failed\n");
+        return 0;
+    }
+
+    // Wait until the seek has completed
+    GstStateChangeReturn state_change_return = gst_element_get_state(
+            handle->pipeline,
+            NULL,
+            NULL,
+            GST_SECOND);
+    switch (state_change_return) {
+        case GST_STATE_CHANGE_SUCCESS:
+            return 1;
+        case GST_STATE_CHANGE_ASYNC:
+            g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_ASYNC\n");
+            return 0;
+        case GST_STATE_CHANGE_FAILURE:
+            g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_FAILURE\n");
+            return 0;
+        case GST_STATE_CHANGE_NO_PREROLL:
+            g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_NO_PREROLL\n");
+            return 0;
+        default:
+            g_printerr("audiodecoder_gst_seek: unknown GstStateChangeReturn\n");
+            return 0;
+    }
+
+    return success;
+}
+
+
+double audiodecoder_gst_get_position(AudioDecoderHandle *handle)
+{
+    gint64 position_nanoseconds;
+    if (!gst_element_query_position(handle->pipeline, GST_FORMAT_TIME, &position_nanoseconds)) {
+        g_printerr("Could not query current position.\n");
+        return 0;
+    }
+    return ((double) position_nanoseconds) / GST_SECOND;
 }
 
 

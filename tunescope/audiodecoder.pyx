@@ -24,6 +24,7 @@ cdef extern from "audiodecoder-gst.c":
     AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
     AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
     int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
+    double audiodecoder_gst_get_position(AudioDecoderHandle *handle)
     int audiodecoder_gst_is_eos(AudioDecoderHandle *handle)
     void audiodecoder_gst_delete(AudioDecoderHandle *handle)
 
@@ -78,6 +79,11 @@ cdef class AudioDecoder:
     @property
     def samplerate(self):
         return self._metadata.samplerate
+
+    @property
+    def position(self):
+        """ The current position in seconds """
+        return audiodecoder_gst_get_position(self._handle)
 
     def __dealloc__(self):
         if self._handle != NULL:

@@ -1,5 +1,6 @@
 import os.path
 import wave
+import time
 
 import pytest
 import numpy as np
@@ -103,3 +104,11 @@ def test_seek(wav_file):
         wav_reader.readframes(len(decoder_samples) / CHANNELS),
         dtype='<i2').astype(np.float32) / 2.0 ** 15
     assert np.allclose(decoder_samples, wav_samples)
+
+
+def test_position(wav_file):
+    filename = os.path.join(
+        os.path.dirname(__file__), 'data', 'short-noise-with-metadata.ogg')
+    decoder = AudioDecoder(filename)
+    decoder.seek(0.5)
+    assert decoder.position == 0.5
