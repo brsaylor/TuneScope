@@ -15,6 +15,9 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 audiobackend_compiler_args = pkgconfig.parse(
     'gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
 
+audiometadata_compiler_args = pkgconfig.parse(
+    'gstreamer-1.0 gstreamer-pbutils-1.0')
+
 audiodecoder_compiler_args = pkgconfig.parse(
     'gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
 audiodecoder_compiler_args['include_dirs'].append(np.get_include())
@@ -30,6 +33,10 @@ extensions = [
     Extension('tunescope.audioutil',
               ['tunescope/audioutil.pyx'],
               include_dirs=[np.get_include()]),
+
+    Extension('tunescope.audiometadata',
+              ['tunescope/audiometadata.pyx'],
+              **audiometadata_compiler_args),
 
     Extension('tunescope.audiodecoder',
               ['tunescope/audiodecoder.pyx'],

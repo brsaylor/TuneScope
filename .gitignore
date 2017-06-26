@@ -7,5 +7,6 @@ TuneScope.egg-info/
 *.so
 *.c
 
+!audiometadata-gst.c
 !audiodecoder-gst.c
 !audiooutput-sdl.c

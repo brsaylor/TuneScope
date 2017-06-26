@@ -2,6 +2,7 @@
 
 import argparse
 
+from tunescope.audiometadata import AudioMetadata
 from tunescope.audiodecoder import AudioDecoder
 from tunescope.buffering import DecoderBuffer
 from tunescope.timestretcher import TimeStretcher
@@ -22,6 +23,14 @@ parser.add_argument('filename', help="Path to audio file")
 parser.add_argument('--speed', type=float)
 parser.add_argument('--pitch', type=float)
 args = parser.parse_args()
+
+metadata = AudioMetadata(args.filename)
+print(u"""
+Title:    {m.title}
+Artist:   {m.artist}
+Album:    {m.album}
+Duration: {m.duration:.2f} seconds
+""".format(m=metadata))
 
 decoder = AudioDecoder(args.filename)
 buf = DecoderBuffer(decoder, 1024)
