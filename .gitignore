@@ -2,6 +2,8 @@
 .cache/
 build/
 TuneScope.egg-info/
+packaging/build/
+packaging/dist/
 
 *.pyc
 *.so
