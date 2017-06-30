@@ -79,5 +79,5 @@ setup(
     ],
 
     packages=find_packages(),
-    ext_modules=cythonize(extensions),
+    ext_modules=cythonize(extensions, build_dir='build'),
 )
