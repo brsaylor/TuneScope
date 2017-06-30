@@ -93,6 +93,8 @@ class Player(EventDispatcher):
         success = self._audio_decoder.seek(position)
         if success:
             self.position = position
+            if self._time_stretcher.is_eos():
+                self._time_stretcher.reset()
         else:
             print("Error: seek failed")
 

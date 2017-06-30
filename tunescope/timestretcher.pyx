@@ -171,6 +171,12 @@ cdef class TimeStretcher:
         return (rb.rubberband_available(self._rb_state) == FINAL_BLOCK_RETRIEVED
                 or self._audio_source_is_empty)
 
+    cpdef void reset(self):
+        """ Enable further processing after end-of-stream
+        (e.g. after a seek backward from EOS) """
+        rb.rubberband_reset(self._rb_state)
+        self._final_input_block_processed = False
+
     @property
     def speed(self):
         """ Ratio of playback speed to original speed """

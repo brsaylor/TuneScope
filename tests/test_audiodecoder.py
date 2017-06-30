@@ -1,6 +1,5 @@
 import os.path
 import wave
-import time
 
 import pytest
 import numpy as np
@@ -10,36 +9,13 @@ from tunescope.audiodecoder import AudioDecoder
 # TODO: Test reading invalid files
 # TODO: Test reading audio from video files
 
-CHANNELS = 2
-SAMPLERATE = 44100
-
-
-@pytest.fixture(scope='session')
-def wav_file(tmpdir_factory):
-    """ Create a WAV file with 10 seconds of noise """
-    channels = CHANNELS
-    samplewidth = 2
-    samplerate = SAMPLERATE
-    duration = 10  # seconds
-    file_path = str(tmpdir_factory.mktemp('audio').join('test.wav'))
-    writer = wave.open(file_path, mode='wb')
-    writer.setnchannels(channels)
-    writer.setsampwidth(samplewidth)
-    writer.setframerate(samplerate)
-    writer.setnframes(samplerate * duration)
-    writer.writeframes(np.random.bytes(
-        channels * samplewidth * samplerate * duration
-    ))
-    writer.close()
-    return file_path
-
 
 def test_nonexistent_file():
     with pytest.raises(IOError):
         AudioDecoder('nonexistent-file')
 
 
-def test_read_wav(wav_file):
+def test_read_wav(wav_file, wav_file_params):
     """ Test that AudioDecoder can read a WAV file correctly """
     wav_reader = wave.open(wav_file, 'rb')
     decoder = AudioDecoder(wav_file)
@@ -49,10 +25,10 @@ def test_read_wav(wav_file):
 
     while not decoder.is_eos():
         decoder_samples = decoder.read()
-        frames_read += len(decoder_samples) / CHANNELS
+        frames_read += len(decoder_samples) / wav_file_params['channels']
         assert len(decoder_samples > 1)
         wav_samples = np.frombuffer(
-            wav_reader.readframes(len(decoder_samples) / CHANNELS),
+            wav_reader.readframes(len(decoder_samples) / wav_file_params['channels']),
             dtype='<i2').astype(np.float32) / 2.0 ** 15
         assert np.allclose(decoder_samples, wav_samples)
 
@@ -61,10 +37,10 @@ def test_read_wav(wav_file):
     assert np.all(decoder.read() == 0)
 
 
-def test_basic_metadata(wav_file):
+def test_basic_metadata(wav_file, wav_file_params):
     decoder = AudioDecoder(wav_file)
-    assert decoder.channels == CHANNELS
-    assert decoder.samplerate == SAMPLERATE
+    assert decoder.channels == wav_file_params['channels']
+    assert decoder.samplerate == wav_file_params['samplerate']
 
 
 def test_delete(wav_file):
@@ -89,19 +65,19 @@ def test_read_ogg():
         assert len(decoder.read()) > 0
 
 
-def test_seek(wav_file):
+def test_seek(wav_file, wav_file_params):
     wav_reader = wave.open(wav_file, 'rb')
     decoder = AudioDecoder(wav_file)
 
     # Seek to 0:05
-    wav_reader.readframes(SAMPLERATE * 5)
+    wav_reader.readframes(wav_file_params['samplerate'] * 5)
     assert decoder.seek(5.0)
 
     # Compare WAV reader and AudioDecoder output after seek
     decoder_samples = decoder.read()
     assert len(decoder_samples) > 32  # Won't do much good to compare a tiny number of samples
     wav_samples = np.frombuffer(
-        wav_reader.readframes(len(decoder_samples) / CHANNELS),
+        wav_reader.readframes(len(decoder_samples) / wav_file_params['channels']),
         dtype='<i2').astype(np.float32) / 2.0 ** 15
     assert np.allclose(decoder_samples, wav_samples)
 
@@ -111,4 +87,31 @@ def test_position(wav_file):
         os.path.dirname(__file__), 'data', 'short-noise-with-metadata.ogg')
     decoder = AudioDecoder(filename)
     decoder.seek(0.5)
-    assert decoder.position == 0.5
+    assert np.isclose(decoder.position, 0.5, atol=0.01)
+
+
+def test_seek_after_eos(wav_file, wav_file_samples):
+
+    # Read file to end
+    decoder = AudioDecoder(wav_file)
+    while not decoder.is_eos():
+        decoder.read()
+
+    # Seek back to start
+    decoder.seek(0)
+    assert np.isclose(decoder.position, 0, atol=0.05)
+
+    # Make an array to hold samples decoded after seeking back to 0,
+    # adding some padding at the end
+    padding = 4096
+    samples_after_seek = np.zeros(len(wav_file_samples) + padding, dtype=np.float32)
+    
+    # Decode entire file again
+    pos = 0  # position in samples
+    while not decoder.is_eos():
+        block = decoder.read()
+        samples_after_seek[pos: pos + len(block)] = block
+        pos += len(block)
+
+    assert np.allclose(samples_after_seek[:len(wav_file_samples)],
+                       wav_file_samples, atol=0.001)

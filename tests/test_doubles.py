@@ -21,6 +21,7 @@ class FakeAudioSource(object):
 
     Beyond standard functionality,
     provides extra methods and attribute for testing:
+        seek(position)
         wait_for_eos_with_timeout()
         wait_for_read_with_timeout()
         read_called
@@ -64,6 +65,9 @@ class FakeAudioSource(object):
         if not status:
             print("waiting for read_event timed out")
 
+    def seek(self, position):
+        self._read_position = position
+
 
 def test_fake_audio_source():
     fake_source = FakeAudioSource(2, 44100, np.arange(5))
@@ -76,6 +80,9 @@ def test_fake_audio_source():
     # These should return immediately
     fake_source.wait_for_eos_with_timeout(0)
     fake_source.wait_for_read_with_timeout(0)
+
+    fake_source.seek(0)
+    assert np.all(fake_source.read(5) == np.arange(5))
 
 
 class FakeAudioDecoder(object):

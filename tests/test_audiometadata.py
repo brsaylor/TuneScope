@@ -3,7 +3,6 @@ import os.path
 import pytest
 
 from tunescope.audiometadata import AudioMetadata
-from test_audiodecoder import wav_file
 
 
 def test_nonexistent_file():
@@ -23,9 +22,9 @@ def test_read_metadata():
     assert metadata.album == 'Test Album'
 
 
-def test_file_with_no_tags(wav_file):
+def test_file_with_no_tags(wav_file, wav_file_params):
     metadata = AudioMetadata(wav_file)
-    assert metadata.duration == 10.0
+    assert metadata.duration == wav_file_params['duration']
     assert metadata.title == ''
     assert metadata.artist == ''
     assert metadata.album == ''

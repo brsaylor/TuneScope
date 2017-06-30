@@ -67,6 +67,8 @@ while True:
         break
     elif string_is_number(input_string):
         decoder.seek(float(input_string))
+        if stretcher.is_eos():
+            stretcher.reset()
     else:
         try:
             command, arg = input_string.split()

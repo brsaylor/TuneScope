@@ -121,3 +121,32 @@ def test_stereo_channels_preserved():
 
     assert np.allclose(input_rms_left, output_rms_left, atol=rms_absolute_tolerance)
     assert np.allclose(input_rms_right, output_rms_right, atol=rms_absolute_tolerance)
+
+
+def test_reset():
+    block_size = 1024
+    sample_count = block_size * 3
+    input_samples = noise(sample_count)
+    source = FakeAudioSource(1, 44100, input_samples)
+    stretcher = TimeStretcher(source)
+    
+    while not stretcher.is_eos():
+        stretcher.read(block_size)
+
+    source.seek(0)
+    source.read_called = False
+
+    # Rubber Band has finished processing the final input block,
+    # so the source will not be read
+    # and any subsequent output is 0
+    assert np.all(stretcher.read(block_size) == 0)
+    assert not source.read_called
+
+    stretcher.reset()
+
+    # Now that the stretcher has been reset,
+    # the stretcher should reading and processing the source again
+    assert not stretcher.is_eos()
+    block = stretcher.read(block_size)
+    assert source.read_called
+    assert rms(block) > 0.3

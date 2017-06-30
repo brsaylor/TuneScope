@@ -199,26 +199,32 @@ int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
     }
 
     // Wait until the seek has completed
+    GstState state;
     GstStateChangeReturn state_change_return = gst_element_get_state(
             handle->pipeline,
-            NULL,
+            &state,
             NULL,
             GST_SECOND);
     switch (state_change_return) {
         case GST_STATE_CHANGE_SUCCESS:
-            return 1;
+            success = 1;
+            break;
         case GST_STATE_CHANGE_ASYNC:
             g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_ASYNC\n");
-            return 0;
+            success = 0;
+            break;
         case GST_STATE_CHANGE_FAILURE:
             g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_FAILURE\n");
-            return 0;
+            success = 0;
+            break;
         case GST_STATE_CHANGE_NO_PREROLL:
             g_printerr("audiodecoder_gst_seek: GST_STATE_CHANGE_NO_PREROLL\n");
-            return 0;
+            success = 0;
+            break;
         default:
             g_printerr("audiodecoder_gst_seek: unknown GstStateChangeReturn\n");
-            return 0;
+            success = 0;
+            break;
     }
 
     return success;
