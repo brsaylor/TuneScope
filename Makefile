@@ -6,6 +6,10 @@ build:
 test: build
 	pytest
 
+.PHONY: test-debug
+test-debug: build
+	pytest --pdb
+
 .PHONY: package
 package: build
 	cd packaging && \

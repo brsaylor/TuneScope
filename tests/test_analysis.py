@@ -1,3 +1,4 @@
+from __future__ import division
 import math
 import wave
 
@@ -5,6 +6,9 @@ import pytest
 import numpy as np
 
 from tunescope.analysis import *
+from tunescope.audiodecoder import AudioDecoder
+from tunescope.buffering import DecoderBuffer
+from tunescope.audiometadata import AudioMetadata
 
 
 TEST_FILE_DURATION = 5  # Test file duration in seconds
@@ -36,7 +40,10 @@ def wav_file_A440(tmpdir_factory):
 
 
 def test_pitch_A440(wav_file_A440):
-    analyzer = Analyzer(wav_file_A440)
+    metadata = AudioMetadata(wav_file_A440)
+    decoder = AudioDecoder(wav_file_A440)
+    buf = DecoderBuffer(decoder, 1024)
+    analyzer = Analyzer(buf, metadata.duration)
     analyzer.analyze()
 
     # MIDI note number for A440 is 69
