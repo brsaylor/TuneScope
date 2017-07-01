@@ -2,6 +2,7 @@ from __future__ import division
 import sys
 
 from kivy.app import App
+from kivy.core.window import Window
 from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
@@ -13,6 +14,10 @@ from tunescope.player import Player
 
 class MainWindow(Widget):
     """ Main application window """
+
+    def __init__(self, **kwargs):
+        super(MainWindow, self).__init__(**kwargs)
+        Window.bind(on_request_close=self.on_request_close)
 
     @property
     def player(self):
@@ -31,6 +36,10 @@ class MainWindow(Widget):
 
     def dismiss_popup(self):
         self._popup.dismiss()
+
+    def on_request_close(self, window):
+        self.player.close_audio_device()
+        return False  # False means go ahead and close the window
 
 
 class OpenDialog(FloatLayout):
@@ -55,9 +64,6 @@ class TuneScopeApp(App):
     def format_time(t):
         seconds = int(t)
         return "{}:{:02d}".format(seconds // 60, seconds % 60)
-
-    def on_stop(self):
-        self.player.close_audio_device()
 
 
 if __name__ == '__main__':

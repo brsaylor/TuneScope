@@ -1,15 +1,19 @@
+.PHONY: build
 build:
 	python setup.py build_ext --inplace
 
+.PHONY: test
 test: build
 	pytest
 
+.PHONY: package
 package: build
 	cd packaging && \
 	pyinstaller -y --clean --windowed TuneScope.spec && \
 	cd dist && \
 	hdiutil create ./TuneScope.dmg -srcfolder TuneScope.app -ov
 
+.PHONY: clean
 clean:
 	python setup.py clean
 	rm -rf build/
