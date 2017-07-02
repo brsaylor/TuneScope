@@ -15,7 +15,9 @@ class Analyzer(object):
     Parameters
     ----------
     audio_source : object
-        TODO
+        An object with properties `channels` and `samplerate`
+        and methods `is_eos()` and `read(sample_count)`,
+        which returns a NumPy float32 array of length `sample_count`.
     duration : float
         Duration of input in seconds
 

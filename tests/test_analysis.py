@@ -9,52 +9,33 @@ from tunescope.analysis import *
 from tunescope.audiodecoder import AudioDecoder
 from tunescope.buffering import DecoderBuffer
 from tunescope.audiometadata import AudioMetadata
+from test_doubles import FakeAudioSource
 
 
-TEST_FILE_DURATION = 5  # Test file duration in seconds
+SINE_WAVE_DURATION = 5  # seconds
+SINE_WAVE_SAMPLERATE = 44100
 
 
 @pytest.fixture(scope='session')
-def wav_file_A440(tmpdir_factory):
-    """ Generate a mono WAV file with a sine wave at A440 """
-    file_path = str(tmpdir_factory.mktemp('audio').join('A440.wav'))
-    channels = 1
-    samplewidth = 2
-    samplerate = 44100
-    duration = TEST_FILE_DURATION
-    writer = wave.open(file_path, mode='wb')
-    writer.setnchannels(channels)
-    writer.setsampwidth(samplewidth)
-    writer.setframerate(samplerate)
-    writer.setnframes(samplerate * duration)
-
-    x = np.linspace(0, 440 * duration * 2 * math.pi, num=samplerate*duration)
+def A440_sine_wave(tmpdir_factory):
+    x = np.linspace(0,
+                    440 * SINE_WAVE_DURATION * 2 * math.pi,
+                    num=SINE_WAVE_SAMPLERATE * SINE_WAVE_DURATION)
     sine = (np.sin(x) * 2**14).astype('<i2')
-
-    writer.writeframes(sine.tobytes(
-        channels * samplewidth * samplerate * duration
-    ))
-
-    writer.close()
-    return file_path
+    return sine
 
 
-def test_pitch_A440(wav_file_A440):
-    metadata = AudioMetadata(wav_file_A440)
-    decoder = AudioDecoder(wav_file_A440)
-    buf = DecoderBuffer(decoder, 1024)
-    analyzer = Analyzer(buf, metadata.duration)
+def test_pitch_A440(A440_sine_wave):
+    source = FakeAudioSource(1, SINE_WAVE_SAMPLERATE, A440_sine_wave)
+    analyzer = Analyzer(source, SINE_WAVE_DURATION)
     analyzer.analyze()
 
-    # MIDI note number for A440 is 69
-    wav_reader = wave.open(wav_file_A440, 'rb')
-
     # Check that pitch array has correct shape
-    assert analyzer.pitch.shape == (math.ceil(wav_reader.getnframes() / HOP_SIZE), 2)
+    assert analyzer.pitch.shape == (math.ceil(len(A440_sine_wave) / HOP_SIZE), 2)
 
     # Check that the time column is correct
     assert np.allclose(analyzer.pitch[:, 0],
-                       np.arange(0, TEST_FILE_DURATION, HOP_SIZE / wav_reader.getframerate()))
+                       np.arange(0, SINE_WAVE_DURATION, HOP_SIZE / SINE_WAVE_SAMPLERATE))
 
-    # Check that pitch is 69, within half a semitone
+    # Check that pitch is 69 (A440), within half a semitone
     assert np.allclose(analyzer.pitch[:, 1], 69, atol=0.5)
