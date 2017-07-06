@@ -10,6 +10,9 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
 
 from tunescope.player import Player
+from tunescope.audiodecoder import AudioDecoder
+from tunescope.buffering import DecoderBuffer
+from tunescope.analysis import Analyzer
 
 
 class MainWindow(Widget):
@@ -32,6 +35,14 @@ class MainWindow(Widget):
         """ Open the first filename in `filenames` with the player """
         if len(filenames) > 0:
             self.player.open_file(filenames[0])
+
+            # FIXME: Refactor
+            decoder = AudioDecoder(filenames[0])
+            buf = DecoderBuffer(decoder, 4096)
+            analyzer = Analyzer(buf, self.player.duration)
+            analyzer.analyze()  # FIXME: This is slow
+            self.ids.pitch_plot.plot(analyzer.pitch)
+
         self.dismiss_popup()
 
     def dismiss_popup(self):

@@ -1,4 +1,5 @@
 #:import Player tunescope.player.Player
+#:import PitchPlot tunescope.visualization.PitchPlot
 
 <MainWindow>:
 
@@ -23,6 +24,11 @@
         Button:
             text: "Pause" if app.player.playing else "Play"
             on_release: app.player.playing = not app.player.playing
+    
+        ScrollView:
+            PitchPlot:
+                id: pitch_plot
+                size_hint: (None, None)
 
         GridLayout:
             cols: 3

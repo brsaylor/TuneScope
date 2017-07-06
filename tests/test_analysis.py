@@ -30,12 +30,5 @@ def test_pitch_A440(A440_sine_wave):
     analyzer = Analyzer(source, SINE_WAVE_DURATION)
     analyzer.analyze()
 
-    # Check that pitch array has correct shape
-    assert analyzer.pitch.shape == (math.ceil(len(A440_sine_wave) / HOP_SIZE), 2)
-
-    # Check that the time column is correct
-    assert np.allclose(analyzer.pitch[:, 0],
-                       np.arange(0, SINE_WAVE_DURATION, HOP_SIZE / SINE_WAVE_SAMPLERATE))
-
     # Check that pitch is 69 (A440), within half a semitone
-    assert np.allclose(analyzer.pitch[:, 1], 69, atol=0.5)
+    assert np.allclose(analyzer.pitch, 69, atol=0.5)

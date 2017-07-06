@@ -24,9 +24,7 @@ class Analyzer(object):
     Attributes
     ----------
     pitch : ndarray
-        2-dimensional array where each row represents a detected pitch.
-        The first column represents time in seconds.
-        The second column represents the pitch as a (possibly non-integer) MIDI note number.
+        Pitches as (possibly non-integer) MIDI note numbers.
         Will be None until analyze() is called.
     """
 
@@ -45,10 +43,9 @@ class Analyzer(object):
         duration_hops = int(math.ceil(duration_frames / HOP_SIZE))
 
         # Each row contains (time, pitch)
-        self.pitch = np.zeros((duration_hops, 2), dtype=np.float32)
+        self.pitch = np.zeros(duration_hops, dtype=np.float32)
 
         for hop in range(duration_hops):
             frames = self._audio_source.read(HOP_SIZE * self._audio_source.channels).reshape((-1, self._audio_source.channels))
             frames_mono = frames.mean(axis=1)
-            self.pitch[hop, 0] = hop * HOP_SIZE / self._audio_source.samplerate  # time in seconds
-            self.pitch[hop, 1] = pitch_detector(frames_mono)[0]
+            self.pitch[hop] = pitch_detector(frames_mono)[0]
