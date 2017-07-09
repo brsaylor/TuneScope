@@ -107,6 +107,9 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     gst_app_sink_set_caps(GST_APP_SINK(handle->appsink), caps);
     gst_app_sink_set_max_buffers(GST_APP_SINK(handle->appsink), 1);
 
+    // Prevents hang that sometimes occurs when setting pipeline state to NULL
+    gst_app_sink_set_wait_on_eos(GST_APP_SINK(handle->appsink), FALSE);
+
     // Set file source
     g_object_set(G_OBJECT(handle->source), "location", filename, NULL);
 
