@@ -9,10 +9,16 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
 
+from async_gui.engine import Task, ProcessTask
+from async_gui.toolkits.kivy import KivyEngine
+
 from tunescope.player import Player
 from tunescope.audiodecoder import AudioDecoder
 from tunescope.buffering import DecoderBuffer
 from tunescope.analysis import Analyzer
+
+
+_async_engine = KivyEngine()
 
 
 class MainWindow(Widget):
@@ -31,19 +37,22 @@ class MainWindow(Widget):
         self._popup = Popup(title="Open File", content=dialog, size_hint=(0.9, 0.9))
         self._popup.open()
 
+    @_async_engine.async
     def open_file(self, path, filenames):
         """ Open the first filename in `filenames` with the player """
+        self.dismiss_popup()
         if len(filenames) > 0:
-            self.player.open_file(filenames[0])
+            filename = filenames[0]
+
+            self.player.open_file(filename)
 
             # FIXME: Refactor
-            decoder = AudioDecoder(filenames[0])
+            decoder = AudioDecoder(filename)
             buf = DecoderBuffer(decoder, 4096)
             analyzer = Analyzer(buf, self.player.duration)
-            analyzer.analyze()  # FIXME: This is slow
-            self.ids.pitch_plot.plot(analyzer.pitch)
 
-        self.dismiss_popup()
+            yield Task(analyzer.analyze)
+            yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
 
     def dismiss_popup(self):
         self._popup.dismiss()

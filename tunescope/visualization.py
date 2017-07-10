@@ -7,6 +7,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.graphics import Color, Mesh, Scale
 from kivy.graphics.tesselator import Tesselator
+from kivy.clock import Clock
 
 
 class PitchPlot(RelativeLayout):
@@ -34,6 +35,8 @@ class PitchPlot(RelativeLayout):
     def plot(self, pitches):
         """ Plot the given pitches on the canvas.
 
+        May be safely called from a non-GUI thread.
+
         Parameters
         ----------
         pitches : ndarray
@@ -52,26 +55,23 @@ class PitchPlot(RelativeLayout):
         points[-2] = (len(pitches) - 1, 0)
         points[-1] = (0, 0)
 
-        tess = Tesselator()
-        print("add_contour")
-        tess.add_contour(points.flatten())  # FIXME: This is slow
-        print("tessellate")
-        if not tess.tesselate():
+        self._tesselator = Tesselator()
+        self._tesselator.add_contour(points.flatten())
+        if not self._tesselator.tesselate():
             raise RuntimeError("Failed to generate pitch plot")
-        print("tessellate done")
+        
+        # Update the drawing instructions on the canvas from the main thread
+        Clock.schedule_once(self._update_canvas, 0)
 
+    def _update_canvas(self, dt):
         self.canvas.clear()
-
         with self.canvas:
             self._scale_matrix = Scale(self.xscale, self.yscale, 1)
             Color(1, 0.5, 1)
-            print("mesh loop")
-            for vertices, indices in tess.meshes:
+            for vertices, indices in self._tesselator.meshes:
                 Mesh(vertices=vertices,
                      indices=indices,
                      mode="triangle_fan")
-            print("mesh loop done")
-
         self._update_scale()
 
     def _update_scale(self, *args):
