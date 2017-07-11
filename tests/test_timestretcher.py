@@ -1,3 +1,5 @@
+import mock
+
 import pytest
 import numpy as np
 
@@ -150,3 +152,13 @@ def test_reset():
     block = stretcher.read(block_size)
     assert source.read_called
     assert rms(block) > 0.3
+
+
+def test_eos_callback():
+    source = FakeAudioSource(1, 44100, noise(44100))
+    stretcher = TimeStretcher(source)
+    eos_callback = mock.Mock()
+    stretcher.eos_callback = eos_callback
+    while not stretcher.is_eos():
+        stretcher.read(1024)
+    assert eos_callback.was_called()

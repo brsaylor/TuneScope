@@ -53,6 +53,7 @@ cdef class TimeStretcher:
     cdef float **_rb_output_buffer_channel_pointers
 
     cdef bint _final_input_block_processed
+    cdef object _eos_callback
 
     def __cinit__(self, object audio_source):
         self.channels = audio_source.channels
@@ -80,6 +81,7 @@ cdef class TimeStretcher:
             audio_source.samplerate, audio_source.channels, rb_options, 1.0, 1.0)
 
         self._final_input_block_processed = False
+        self._eos_callback = None
 
     cdef void _set_rb_buffer_channel_pointers(self):
         cdef float [:, :] rb_input_buffer_view = self._rb_input_buffer
@@ -98,7 +100,10 @@ cdef class TimeStretcher:
         while (rb.rubberband_available(self._rb_state) < frame_count
                and not self._final_input_block_processed):
             self._process_more_input()
-        return self._retrieve_rb_output(sample_count)
+        cdef ndarray output_block = self._retrieve_rb_output(sample_count)
+        if self.is_eos() and self._eos_callback is not None:
+            self._eos_callback()
+        return output_block
 
     cdef void _update_rb_parameters(self):
         # Update the Rubber Band instance with the current speed and pitch parameters.
@@ -145,7 +150,7 @@ cdef class TimeStretcher:
         cdef size_t frames_retrieved = rb.rubberband_retrieve(
                 self._rb_state,
                 self._rb_output_buffer_channel_pointers,
-                frame_count)
+                min(frame_count, RB_OUTPUT_BUFFER_SIZE_IN_FRAMES))
         cdef ndarray[float32_t] output_block = np.zeros(sample_count, dtype=np.float32)
         cdef float [:, :] rb_output_buffer_view = self._rb_output_buffer
 
@@ -199,6 +204,15 @@ cdef class TimeStretcher:
 
     cpdef size_t get_latency(self):
         return rb.rubberband_get_latency(self._rb_state)
+
+    @property
+    def eos_callback(self):
+        """ Function to be called when end of stream has been processed """
+        return self._eos_callback
+
+    @eos_callback.setter
+    def eos_callback(self, callback):
+        self._eos_callback = callback
 
     def __dealloc__(self):
         # FIXME: Need to ensure that it's not deleted while read() is running
