@@ -1,4 +1,5 @@
 #:import Player tunescope.player.Player
+#:import PlayerPositionSlider tunescope.widgets.PlayerPositionSlider
 #:import PitchPlot tunescope.visualization.PitchPlot
 
 <MainWindow>:
@@ -39,14 +40,14 @@
                 text: "{}".format(app.format_time(app.player.position))
                 size_hint_x: None
 
-            Slider:
+            PlayerPositionSlider:
                 value: app.player.position
                 on_value: app.player.position = self.value
                 min: 0
                 max: app.player.duration
                 step: 0.01
-                on_touch_down: app.player.on_slider_seek_begin()
-                on_touch_up: app.player.on_slider_seek_end()
+                on_drag_begin: app.player.on_slider_seek_begin()
+                on_drag_end: app.player.on_slider_seek_end()
 
             Label:
                 text: "{}".format(app.format_time(app.player.duration))
