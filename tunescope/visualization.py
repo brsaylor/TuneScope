@@ -5,13 +5,12 @@ import math
 import numpy as np
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import NumericProperty, ObjectProperty
-from kivy.graphics import Color, Mesh, Scale
-from kivy.graphics.tesselator import Tesselator
+from kivy.graphics import Color, Scale, Line
 from kivy.clock import Clock
 
 
 class PitchPlot(RelativeLayout):
-    """ An area plot of MIDI pitch over time.
+    """ A plot of MIDI pitch over time.
 
     Adjusting the scale attributes automatically updates the `size` property
     to contain the entire plot.
@@ -46,20 +45,11 @@ class PitchPlot(RelativeLayout):
         self._num_pitches = len(pitches)
         self._highest_pitch = pitches.max()
 
-        # Create the points of a polygon outlining the pitch plot.
-        # The area under the pitch contour is to be filled,
-        # so we add two extra points at (xmax, 0) and (0, 0).
-        points = np.empty((len(pitches) + 2, 2), dtype=np.float32)
-        points[:-2, 0] = np.arange(len(pitches), dtype=np.float32)
-        points[:-2, 1] = pitches
-        points[-2] = (len(pitches) - 1, 0)
-        points[-1] = (0, 0)
+        points = np.empty((len(pitches), 2), dtype=np.float32)
+        points[:, 0] = np.arange(len(pitches), dtype=np.float32)
+        points[:, 1] = pitches
+        self._points = list(points.flatten())
 
-        self._tesselator = Tesselator()
-        self._tesselator.add_contour(points.flatten())
-        if not self._tesselator.tesselate():
-            raise RuntimeError("Failed to generate pitch plot")
-        
         # Update the drawing instructions on the canvas from the main thread
         Clock.schedule_once(self._update_canvas, 0)
 
@@ -68,10 +58,7 @@ class PitchPlot(RelativeLayout):
         with self.canvas:
             self._scale_matrix = Scale(self.xscale, self.yscale, 1)
             Color(1, 0.5, 1)
-            for vertices, indices in self._tesselator.meshes:
-                Mesh(vertices=vertices,
-                     indices=indices,
-                     mode="triangle_fan")
+            Line(points=self._points, width=1)
         self._update_scale()
 
     def _update_scale(self, *args):
