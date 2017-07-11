@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 
 // Requested number of samples for the audio output buffer
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE 4096
 
 
 // Instance data for the AudioOutput class, representing an open audio device.
