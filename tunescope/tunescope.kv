@@ -1,3 +1,5 @@
+#:import ScrollEffect kivy.effects.scroll.ScrollEffect
+
 #:import Player tunescope.player.Player
 #:import PlayerPositionSlider tunescope.widgets.PlayerPositionSlider
 #:import PitchPlot tunescope.visualization.PitchPlot
@@ -26,10 +28,35 @@
             text: "Pause" if app.player.playing else "Play"
             on_release: app.player.playing = not app.player.playing
     
+        # Scrolling pitch plot
         ScrollView:
-            PitchPlot:
-                id: pitch_plot
+            id: scroll_view
+            scroll_x: (app.player.position / app.player.duration) if app.player.duration > 0 else 0
+
+            # Disable scrolling intertia
+            effect_x: ScrollEffect(friction=1)
+
+            on_scroll_start: app.player.on_slider_seek_begin()
+            on_scroll_move: app.player.position = self.scroll_x * app.player.duration
+            on_scroll_stop: app.player.on_slider_seek_end()
+
+            canvas.after:
+
+                # Center line
+                Color:
+                    rgb: (1, 1, 1)
+                Line:
+                    points: [self.width / 2, self.y, self.width / 2, self.y + self.height]
+
+            # Pitch plot with padding on left and right, allowing the left and
+            # right ends of the plot to align with the center line
+            AnchorLayout:
+                anchor_x: 'center'
+                width: scroll_view.width + pitch_plot.width
                 size_hint: (None, None)
+                PitchPlot:
+                    id: pitch_plot
+                    size_hint: (None, None)
 
         GridLayout:
             cols: 3
