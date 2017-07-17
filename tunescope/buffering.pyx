@@ -74,6 +74,13 @@ cdef class StreamBuffer:
         self.capacity = new_capacity
         self._start = 0
 
+    cpdef clear(self):
+        """
+        Remove all data from the queue.
+        """
+        self._start = 0
+        self.size = 0
+
 
 cdef class DecoderBuffer:
     """
@@ -100,6 +107,13 @@ cdef class DecoderBuffer:
     def samplerate(self):
         return self._decoder.samplerate
 
+    @property
+    def position(self):
+        cdef double seconds_buffered = (<float> self._stream_buffer.size
+                                        / self._decoder.channels
+                                        / self._decoder.samplerate)
+        return self._decoder.position - seconds_buffered
+
     cpdef np.ndarray[np.float32_t] read(self, size_t sample_count):
         """ Read a block of `sample_count` samples from the decoder,
         returning zeros beyond the end of the stream. """
@@ -113,12 +127,22 @@ cdef class DecoderBuffer:
             block = pad_block(block, sample_count)
         return block
 
+    cpdef bint seek(self, double position):
+        """ Seek to the given position in seconds.
+        Return True on success, False on failure. """
+        if not self._decoder.seek(position):
+            return False
+        self._stream_buffer.clear()
+        return True
+
     cpdef bint is_eos(self):
         """ Return True if end-of-stream has been reached
         and buffer has been emptied """
         return self._decoder.is_eos() and self._stream_buffer.size == 0
 
     cdef _fill_stream_buffer(self, size_t target_size):
+        """ Read blocks from the decoder into the buffer until the buffer contains
+        target_size samples or end-of-stream """
         cdef np.ndarray[np.float32_t] input_block
         cdef size_t free_space
         cdef size_t required_capacity

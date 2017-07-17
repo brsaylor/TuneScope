@@ -66,7 +66,7 @@ while True:
     elif input_string.startswith('q'):
         break
     elif string_is_number(input_string):
-        decoder.seek(float(input_string))
+        buf.seek(float(input_string))
         if stretcher.is_eos():
             stretcher.reset()
     else:

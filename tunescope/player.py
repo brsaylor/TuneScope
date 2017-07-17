@@ -88,10 +88,11 @@ class Player(EventDispatcher):
         This is not done automatically when the `position` property changes
         so that dragging the position slider doesn't cause an immediate seek.
         """
-        if self._audio_decoder is None:
+        if self._decoder_buffer is None:
             return
-        success = self._audio_decoder.seek(position)
+        success = self._decoder_buffer.seek(position)
         if success:
+
             self.position = position
             if self._time_stretcher.is_eos():
                 self._time_stretcher.reset()
@@ -105,7 +106,9 @@ class Player(EventDispatcher):
 
     def _sync_position(self, dt):
         """ Get the current playback position of the pipeline and update the `position` property """
-        self.position = self._audio_decoder.position
+        position_change = self._decoder_buffer.position - self.position
+        print("position changed by {}".format(position_change))
+        self.position = self._decoder_buffer.position
 
     def _enable_position_sync(self):
         """ Enable periodic updates of the `position` property from the audio pipeline """

@@ -67,6 +67,7 @@ class FakeAudioSource(object):
 
     def seek(self, position):
         self._read_position = position
+        return True
 
 
 def test_fake_audio_source():
@@ -91,31 +92,92 @@ class FakeAudioDecoder(object):
     def __init__(self, blocks):
         """ `blocks` is a list of lists representing the blocks of samples
         returned by each call to read() """
-        self._blocks = (np.array(values, dtype=np.float32) for values in blocks)
-        self._blocks_remaining = len(blocks)
+        self.channels = 1
+        self.samplerate = 100
+        self._blocks = [np.array(values, dtype=np.float32) for values in blocks]
+        self._next_block_index = 0
+        self._samples_read = 0
 
     def read(self):
-        if self._blocks_remaining <= 0:
+        if self.is_eos():
             return np.zeros(4, dtype=np.float32)
-        self._blocks_remaining -= 1
-        return next(self._blocks)
+        block = self._blocks[self._next_block_index]
+        self._samples_read += len(block)
+        self._next_block_index += 1
+        return block
+
+    @property
+    def position(self):
+        return self._samples_to_seconds(self._samples_read)
+
+    def seek(self, position):
+        self._next_block_index = 0
+        self._samples_read = 0
+        for block in self._blocks:
+            if self._samples_to_seconds(self._samples_read + len(block)) > position:
+                break
+            self._samples_read += len(block)
+            self._next_block_index += 1
+        return True
 
     def is_eos(self):
-        return self._blocks_remaining <= 0
+        return self._next_block_index >= len(self._blocks)
+
+    def _samples_to_seconds(self, samples):
+        return float(samples) / self.channels / self.samplerate
 
 
 class TestFakeAudioDecoder(object):
 
     def test_read_empty_stream(self):
-        fake_decoder = FakeAudioDecoder([])
-        block = fake_decoder.read()
+        decoder = FakeAudioDecoder([])
+        block = decoder.read()
         assert len(block) > 0
         assert np.all(block == 0)
-        assert fake_decoder.is_eos()
+        assert decoder.is_eos()
 
     def test_read_entire_stream(self):
-        fake_decoder = FakeAudioDecoder([[1, 2], [3, 4]])
+        decoder = FakeAudioDecoder([[1, 2], [3, 4]])
         data_read = []
-        while not fake_decoder.is_eos():
-            data_read += list(fake_decoder.read())
+        while not decoder.is_eos():
+            data_read += list(decoder.read())
         assert data_read == [1, 2, 3, 4]
+
+    def test_position(self):
+        decoder = FakeAudioDecoder([[1, 2, 3, 4]])
+        decoder.channels = 2
+        decoder.samplerate = 2
+        assert decoder.position == 0
+        decoder.read()
+        assert decoder.position == 1
+
+    def test_seek_to_block_boundary(self):
+        decoder = FakeAudioDecoder([range(6), range(6, 12)])
+        decoder.channels = 2
+        decoder.samplerate = 3
+        decoder.seek(1)
+        assert decoder.position == 1
+        assert np.all(decoder.read() == range(6, 12))
+
+    def test_seek_between_block_boundaries(self):
+
+        # This assumes that seeking to a position between block boundaries
+        # should result in a position at the start of the block containing
+        # the seek position.
+        # This may or may not accurately reflect GStreamer's behavior.
+
+        decoder = FakeAudioDecoder([range(6), range(6, 12), range(12, 18)])
+        decoder.channels = 2
+        decoder.samplerate = 3
+        decoder.seek(1.5)
+        assert decoder.position == 1
+        assert np.all(decoder.read() == range(6, 12))
+
+    def test_seek_to_end(self):
+        decoder = FakeAudioDecoder([range(6)])
+        decoder.channels = 2
+        decoder.samplerate = 3
+        decoder.seek(1)
+        assert decoder.position == 1
+        assert decoder.is_eos()
+        assert np.all(decoder.read() == 0)
