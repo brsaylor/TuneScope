@@ -43,6 +43,7 @@ class Player(EventDispatcher):
         self._audio_decoder = AudioDecoder(filename)
         self._decoder_buffer = DecoderBuffer(self._audio_decoder, 4096)
         self._time_stretcher = TimeStretcher(self._decoder_buffer)
+        self._time_stretcher.eos_callback = self.on_eos
         self._audio_output = AudioOutput(self._time_stretcher)
 
         metadata = AudioMetadata(filename)
@@ -55,6 +56,8 @@ class Player(EventDispatcher):
         self.seek(0)
         self.speed = 1
         self.pitch = 0
+
+        self._decoder_buffer_previous_position = 0
 
     def on_playing(self, instance, value):
         """ Play or pause playback. Called when `playing` property changes """
@@ -83,6 +86,10 @@ class Player(EventDispatcher):
         if self.playing:
             self._enable_position_sync()
 
+    def on_eos(self):
+        """ Called when end of stream is reached """
+        self.playing = False
+
     def seek(self, position):
         """ Seek to the given position in the file.
         This is not done automatically when the `position` property changes
@@ -106,9 +113,15 @@ class Player(EventDispatcher):
 
     def _sync_position(self, dt):
         """ Get the current playback position of the pipeline and update the `position` property """
-        position_change = self._decoder_buffer.position - self.position
-        print("position changed by {}".format(position_change))
-        self.position = self._decoder_buffer.position
+        position_change = self._decoder_buffer.position - self._decoder_buffer_previous_position
+        if position_change == 0 and self.playing:
+            # Interpolate position between pipeline position updates.
+            # (The precision of the pipeline position is limited by the audio
+            # output buffer size.)
+            self.position += dt * self._time_stretcher.speed
+        else:
+            self.position = self._decoder_buffer.position
+        self._decoder_buffer_previous_position = self._decoder_buffer.position
 
     def _enable_position_sync(self):
         """ Enable periodic updates of the `position` property from the audio pipeline """
