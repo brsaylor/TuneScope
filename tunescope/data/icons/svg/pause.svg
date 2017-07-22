@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1cm"
+   height="1cm"
+   viewBox="0 0 10 9.9999996"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.1 r"
+   sodipodi:docname="pause.svg"
+   inkscape:export-filename="/Users/ben/src/TuneScope/tunescope/data/icons/png/pause.png"
+   inkscape:export-xdpi="1300.48"
+   inkscape:export-ydpi="1300.48">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="15.839192"
+     inkscape:cx="14.675112"
+     inkscape:cy="18.621827"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     units="cm"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1197"
+     inkscape:window-height="855"
+     inkscape:window-x="280"
+     inkscape:window-y="1103"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid18"
+       units="mm"
+       spacingx="0.49999998"
+       spacingy="0.99999995"
+       empspacing="2" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-287.00002)">
+    <rect
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.29581314;stroke-opacity:1"
+       id="rect4557"
+       width="2.4999995"
+       height="8.0000095"
+       x="1.0000001"
+       y="288.00003" />
+    <rect
+       y="288.00003"
+       x="6.4999995"
+       height="8.0000095"
+       width="2.4999998"
+       id="rect4564"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.29581314;stroke-opacity:1" />
+  </g>
+</svg>

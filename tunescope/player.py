@@ -1,4 +1,3 @@
-import kivy.support
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, BoundedNumericProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
@@ -8,6 +7,7 @@ from .audiodecoder import AudioDecoder
 from .buffering import DecoderBuffer
 from .timestretcher import TimeStretcher
 from .audiooutput import AudioOutput
+
 
 class Player(EventDispatcher):
     """ Audio player engine """
@@ -61,6 +61,8 @@ class Player(EventDispatcher):
 
     def on_playing(self, instance, value):
         """ Play or pause playback. Called when `playing` property changes """
+        if self._audio_output is None:
+            return
         if value:
             self._audio_output.play()
             self._enable_position_sync()
@@ -70,11 +72,13 @@ class Player(EventDispatcher):
 
     def on_speed(self, instance, value):
         """ Change the speed of the time stretcher. Called when `speed` property changes """
-        self._time_stretcher.speed = value
+        if self._time_stretcher is not None:
+            self._time_stretcher.speed = value
 
     def on_pitch(self, instance, value):
         """ Change the pitch scale of the time stretcher. Called when `pitch` property changes """
-        self._time_stretcher.pitch = value
+        if self._time_stretcher is not None:
+            self._time_stretcher.pitch = value
 
     def on_slider_seek_begin(self):
         """ Called when user starts dragging the position slider """

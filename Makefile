@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	python setup.py build_ext --inplace
+	python2 setup.py build_ext --inplace
 
 .PHONY: test
 test: build
@@ -19,7 +19,7 @@ package: build
 
 .PHONY: clean
 clean:
-	python setup.py clean
+	python2 setup.py clean
 	rm -rf build/
 	rm -f tunescope/*.{pyc,so}
 	rm -rf tunescope/__pycache__

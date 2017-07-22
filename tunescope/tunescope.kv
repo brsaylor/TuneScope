@@ -1,8 +1,8 @@
 #:import ScrollEffect kivy.effects.scroll.ScrollEffect
 
 #:import Player tunescope.player.Player
-#:import PlayerPositionSlider tunescope.widgets.PlayerPositionSlider
 #:import PitchPlot tunescope.visualization.PitchPlot
+#:import IconButton tunescope.widgets.IconButton
 
 <MainWindow>:
 
@@ -11,26 +11,63 @@
         height: root.height
         orientation: 'vertical'
 
-        Button:
-            text: "Open"
-            on_release: root.show_open_dialog()
 
-        Label:
-            text: app.player.title
+        # Main toolbar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 48
+            padding: 8, 8
+            spacing: 8
 
-        Label:
-            text: app.player.artist
+            canvas.before:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Button:
+                text: "Open"
+                on_release: root.show_open_dialog()
 
-        Label:
-            text: app.player.album
 
-        Button:
-            text: "Pause" if app.player.playing else "Play"
-            on_release: app.player.playing = not app.player.playing
+        # Media info bar
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            padding: 8, 8
+            spacing: 8
+            canvas.before:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.3
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: app.player.title 
+                size_hint_y: None
+                size: self.texture_size
+                text_size: self.size
+                halign: 'left'
+                font_size: '20sp'
+            Label:
+                text: "{} - [i]{}[/i]".format(app.player.artist, app.player.album)
+                markup: True
+                size_hint_y: None
+                size: self.texture_size
+                text_size: self.size
+                halign: 'left'
+
     
         # Scrolling pitch plot
         ScrollView:
             id: scroll_view
+            scroll_type: ['bars', 'content']
+            bar_width: 8
+            bar_color: 0.7, 0.7, 0.7, 0.9
+            bar_inactive_color: 0.7, 0.7, 0.7, 0.6
+
             scroll_x: (app.player.position / app.player.duration) if app.player.duration > 0 else 0
 
             # Disable scrolling intertia
@@ -44,7 +81,7 @@
 
                 # Center line
                 Color:
-                    rgb: (1, 1, 1)
+                    rgb: 1, 1, 1
                 Line:
                     points: [self.width / 2, self.y, self.width / 2, self.y + self.height]
 
@@ -58,56 +95,62 @@
                     id: pitch_plot
                     size_hint: (None, None)
 
+
+        # Player toolbar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 48
+            padding: 8, 8
+            spacing: 8
+
+            canvas.before:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.3
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            IconButton:
+                icon: 'pause' if app.player.playing else 'play'
+                on_release: app.player.playing = not app.player.playing
+                size_hint_x: None
+                size: 40, 40
+                pos_hint: {'center_y': 0.5}
+            Label:
+                text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
+                size_hint_x: None
+                pos_hint: {'center_y': 0.5}
+                size: self.texture_size
+            Widget:  # spacer
+
+
+        # Speed/pitch controls
         GridLayout:
             cols: 3
-
-            # Playback position slider
-
-            Label:
-                text: "{}".format(app.format_time(app.player.position))
-                size_hint_x: None
-
-            PlayerPositionSlider:
-                value: app.player.position
-                on_value: app.player.position = self.value
-                min: 0
-                max: app.player.duration
-                step: 0.01
-                on_drag_begin: app.player.on_slider_seek_begin()
-                on_drag_end: app.player.on_slider_seek_end()
-
-            Label:
-                text: "{}".format(app.format_time(app.player.duration))
-                size_hint_x: None
-
-            # Speed slider
+            size_hint_y: None
+            height: 80
 
             Label:
                 text: "Speed"
                 size_hint_x: None
-
             Slider:
                 value: app.player.speed
                 on_value: app.player.speed = self.value
                 range: Player.speed.bounds
                 step: 0.01
-
             Label:
                 text: "{:0.2f}".format(app.player.speed)
                 size_hint_x: None
 
-            # Pitch slider
-
             Label:
                 text: "Pitch"
                 size_hint_x: None
-
             Slider:
                 value: app.player.pitch
                 on_value: app.player.pitch = self.value
                 range: Player.pitch.bounds
                 step: 1
-
             Label:
                 text: str(int(app.player.pitch))
                 size_hint_x: None

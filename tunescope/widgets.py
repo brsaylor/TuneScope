@@ -1,4 +1,7 @@
 from kivy.uix.slider import Slider
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
+from kivy.properties import StringProperty
 
 
 class PlayerPositionSlider(Slider):
@@ -22,3 +25,11 @@ class PlayerPositionSlider(Slider):
 
     def on_drag_end(self):
         pass
+
+
+class IconButton(ButtonBehavior, Image):
+
+    icon = StringProperty()
+
+    def on_icon(self, instance, value):
+        self.source = 'data/icons/png/{}.png'.format(value)
