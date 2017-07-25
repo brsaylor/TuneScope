@@ -1,5 +1,6 @@
 from __future__ import division
 import sys
+import os.path
 
 from kivy.app import App
 from kivy.core.window import Window
@@ -7,9 +8,8 @@ from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.popup import Popup
-
-from async_gui.engine import Task, ProcessTask
+import plyer
+from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
 
 from tunescope.player import Player
@@ -33,40 +33,29 @@ class MainWindow(Widget):
         return App.get_running_app().player
 
     def show_open_dialog(self):
-        dialog = OpenDialog(open=self.open_file, cancel=self.dismiss_popup)
-        self._popup = Popup(title="Open File", content=dialog, size_hint=(0.9, 0.9))
-        self._popup.open()
+        selected_files = plyer.filechooser.open_file(
+            path=os.path.join(os.path.expanduser('~'), 'Music'),
+            multiple=False,
+            preview=True,
+            title="Open media file")
+        if selected_files is not None:
+            self.open_file(selected_files[0])
 
     @_async_engine.async
-    def open_file(self, path, filenames):
-        """ Open the first filename in `filenames` with the player """
-        self.dismiss_popup()
-        if len(filenames) > 0:
-            filename = filenames[0]
+    def open_file(self, filename):
+        self.player.open_file(filename)
 
-            self.player.open_file(filename)
+        # FIXME: Refactor
+        decoder = AudioDecoder(filename)
+        buf = DecoderBuffer(decoder, 4096)
+        analyzer = Analyzer(buf, self.player.duration)
 
-            # FIXME: Refactor
-            decoder = AudioDecoder(filename)
-            buf = DecoderBuffer(decoder, 4096)
-            analyzer = Analyzer(buf, self.player.duration)
-
-            yield Task(analyzer.analyze)
-            yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
-
-    def dismiss_popup(self):
-        self._popup.dismiss()
+        yield Task(analyzer.analyze)
+        yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
 
     def on_request_close(self, window):
         self.player.close_audio_device()
         return False  # False means go ahead and close the window
-
-
-class OpenDialog(FloatLayout):
-    """ Open file dialog"""
-
-    open = ObjectProperty(None)    # function bound to Open button
-    cancel = ObjectProperty(None)  # function bound to Cancel button
 
 
 class TuneScopeApp(App):

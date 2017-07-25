@@ -154,24 +154,3 @@
             Label:
                 text: str(int(app.player.pitch))
                 size_hint_x: None
-
-
-<OpenDialog>:
-    BoxLayout:
-        size: root.size
-        pos: root.pos
-        orientation: "vertical"
-        FileChooserListView:
-            id: filechooser
-            path: "~/Music"
-
-        BoxLayout:
-            size_hint_y: None
-            height: 30
-            Button:
-                text: "Cancel"
-                on_release: root.cancel()
-
-            Button:
-                text: "Open"
-                on_release: root.open(filechooser.path, filechooser.selection)
