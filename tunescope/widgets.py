@@ -1,3 +1,4 @@
+from kivy.uix.widget import Widget
 from kivy.uix.slider import Slider
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
@@ -33,3 +34,9 @@ class IconButton(ButtonBehavior, Image):
 
     def on_icon(self, instance, value):
         self.source = 'data/icons/png/{}.png'.format(value)
+        self.mipmap = True
+
+
+class VerticalSeparator(Widget):
+    """ A vertical separator line. Defined in tunescope.kv """
+    pass

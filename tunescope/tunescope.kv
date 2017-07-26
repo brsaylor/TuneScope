@@ -3,6 +3,9 @@
 #:import Player tunescope.player.Player
 #:import PitchPlot tunescope.visualization.PitchPlot
 #:import IconButton tunescope.widgets.IconButton
+#:import VerticalSeparator tunescope.widgets.VerticalSeparator
+
+#:set icon_size (40, 40)
 
 <MainWindow>:
 
@@ -72,6 +75,7 @@
 
             # Disable scrolling intertia
             effect_x: ScrollEffect(friction=1)
+            effect_y: ScrollEffect(friction=1)
 
             on_scroll_start: app.player.on_slider_seek_begin()
             on_scroll_move: app.player.position = self.scroll_x * app.player.duration
@@ -90,6 +94,7 @@
             AnchorLayout:
                 anchor_x: 'center'
                 width: scroll_view.width + pitch_plot.width
+                height: pitch_plot.height
                 size_hint: (None, None)
                 PitchPlot:
                     id: pitch_plot
@@ -115,14 +120,38 @@
                 icon: 'pause' if app.player.playing else 'play'
                 on_release: app.player.playing = not app.player.playing
                 size_hint_x: None
-                size: 40, 40
+                size: icon_size
                 pos_hint: {'center_y': 0.5}
             Label:
                 text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
                 size_hint_x: None
                 pos_hint: {'center_y': 0.5}
                 size: self.texture_size
-            Widget:  # spacer
+
+            # Spacer
+            Widget:
+                size_hint_x: None
+                width: 40
+
+            VerticalSeparator:
+            IconButton:
+                icon: 'zoom-horizontal'
+                size_hint_x: None
+                size: icon_size
+            Slider:
+                value: pitch_plot.xscale
+                on_value: pitch_plot.xscale = self.value
+                range: 1, 20
+
+            VerticalSeparator:
+            IconButton:
+                icon: 'zoom-vertical'
+                size_hint_x: None
+                size: icon_size
+            Slider:
+                value: pitch_plot.yscale
+                on_value: pitch_plot.yscale = self.value
+                range: 1, 20
 
 
         # Speed/pitch controls
@@ -154,3 +183,13 @@
             Label:
                 text: str(int(app.player.pitch))
                 size_hint_x: None
+
+
+<VerticalSeparator>
+    size_hint_x: None
+    width: 1
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 0.5
+        Line:
+            points: self.x, self.y, self.x, self.y + self.height

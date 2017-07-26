@@ -28,8 +28,9 @@ class PitchPlot(RelativeLayout):
 
     def __init__(self, **kwargs):
         super(PitchPlot, self).__init__(**kwargs)
-        self.bind(xscale=self._update_scale, yscale=self._update_scale)
+        self._points = None
         self._scale_matrix = None
+        self.bind(xscale=self._update_scale, yscale=self._update_scale)
 
     def plot(self, pitches):
         """ Plot the given pitches on the canvas.
@@ -63,6 +64,8 @@ class PitchPlot(RelativeLayout):
 
     def _update_scale(self, *args):
         """ Compute widget size and canvas scale """
+        if self._points is None:
+            return
         width = math.ceil(self._num_pitches * self.xscale)
         height = math.ceil(self._highest_pitch * self.yscale)
         self.size = (width, height)
