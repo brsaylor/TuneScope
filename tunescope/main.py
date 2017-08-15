@@ -4,10 +4,8 @@ import os.path
 
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.uix.floatlayout import FloatLayout
 import plyer
 from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
@@ -27,6 +25,7 @@ class MainWindow(Widget):
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_request_close=self.on_request_close)
+        Window.bind(on_dropfile=self.on_dropfile)
 
     @property
     def player(self):
@@ -52,6 +51,9 @@ class MainWindow(Widget):
 
         yield Task(analyzer.analyze)
         yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
+
+    def on_dropfile(self, window, filename):
+        self.open_file(filename)
 
     def on_request_close(self, window):
         self.player.close_audio_device()
