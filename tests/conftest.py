@@ -9,6 +9,9 @@ import pytest
 import numpy as np
 
 
+np.random.seed(1)
+
+
 @pytest.fixture(scope='session')
 def wav_file_params():
     return {

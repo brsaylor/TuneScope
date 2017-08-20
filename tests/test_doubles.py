@@ -4,7 +4,6 @@ Test doubles for use in unit tests, along with tests for them
 
 import threading
 
-import pytest
 import numpy as np
 
 from tunescope.audioutil import pad_block
@@ -20,8 +19,9 @@ class FakeAudioSource(object):
     Actual audio sources include DecoderBuffer and TimeStretcher.
 
     Beyond standard functionality,
-    provides extra methods and attribute for testing:
+    provides extra methods and attributes for testing:
         seek(position)
+        position
         wait_for_eos_with_timeout()
         wait_for_read_with_timeout()
         read_called
@@ -66,12 +66,16 @@ class FakeAudioSource(object):
             print("waiting for read_event timed out")
 
     def seek(self, position):
-        self._read_position = position
+        self._read_position = int(position * self.channels * self.samplerate)
         return True
+
+    @property
+    def position(self):
+        return float(self._read_position) / self.channels / self.samplerate
 
 
 def test_fake_audio_source():
-    fake_source = FakeAudioSource(2, 44100, np.arange(5))
+    fake_source = FakeAudioSource(2, 10, np.arange(5))
     assert np.all(fake_source.read(2) == np.array([0, 1]))
     assert np.all(fake_source.read(2) == np.array([2, 3]))
     assert np.all(fake_source.read(2) == np.array([4, 0]))
@@ -84,6 +88,10 @@ def test_fake_audio_source():
 
     fake_source.seek(0)
     assert np.all(fake_source.read(5) == np.arange(5))
+
+    fake_source.seek(0.1)
+    assert fake_source.position == 0.1
+    assert fake_source.read(1) == 2
 
 
 class FakeAudioDecoder(object):

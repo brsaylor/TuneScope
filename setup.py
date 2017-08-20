@@ -46,6 +46,10 @@ extensions = [
               ['tunescope/buffering.pyx'],
               include_dirs=[np.get_include()]),
 
+    Extension('tunescope.looper',
+              ['tunescope/looper.pyx'],
+              include_dirs=[np.get_include()]),
+
     Extension('tunescope.timestretcher',
               ['tunescope/timestretcher.pyx'],
               libraries=['rubberband'],
