@@ -73,8 +73,9 @@ class TuneScopeApp(App):
 
     @staticmethod
     def format_time(t):
-        seconds = int(t)
-        return "{}:{:02d}".format(seconds // 60, seconds % 60)
+        minutes = int(t) // 60
+        seconds = t - 60 * minutes
+        return "{}:{:05.2f}".format(minutes, seconds)
 
 
 if __name__ == '__main__':

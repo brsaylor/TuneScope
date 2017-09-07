@@ -5,6 +5,7 @@ from kivy.clock import Clock
 from .audiometadata import AudioMetadata
 from .audiodecoder import AudioDecoder
 from .buffering import DecoderBuffer
+from .looper import Looper
 from .timestretcher import TimeStretcher
 from .audiooutput import AudioOutput
 
@@ -18,6 +19,9 @@ class Player(EventDispatcher):
     speed = BoundedNumericProperty(1.0, min=0.1, max=2.0)   # Playback speed ratio
     transpose = BoundedNumericProperty(0, min=-12, max=12)  # Semitones component of pitch
     tuning = BoundedNumericProperty(0, min=-50, max=50)     # Cents component of pitch
+    looping_enabled = BooleanProperty(False)
+    loop_start = NumericProperty(0.0)
+    loop_end = NumericProperty(0.0)
 
     # File metadata
     title = StringProperty("Title")
@@ -29,6 +33,7 @@ class Player(EventDispatcher):
 
         self._audio_decoder = None
         self._decoder_buffer = None
+        self._looper = None
         self._time_stretcher = None
         self._audio_output = None
 
@@ -43,7 +48,8 @@ class Player(EventDispatcher):
         # Build audio pipeline
         self._audio_decoder = AudioDecoder(filename)
         self._decoder_buffer = DecoderBuffer(self._audio_decoder, 4096)
-        self._time_stretcher = TimeStretcher(self._decoder_buffer)
+        self._looper = Looper(self._decoder_buffer)
+        self._time_stretcher = TimeStretcher(self._looper)
         self._time_stretcher.eos_callback = self.on_eos
         self._audio_output = AudioOutput(self._time_stretcher)
 
@@ -70,6 +76,24 @@ class Player(EventDispatcher):
         else:
             self._audio_output.pause()
             self._disable_position_sync()
+
+    def on_looping_enabled(self, instance, value):
+        if not self._looper:
+            return False
+        if self.loop_start >= self.loop_end or self.loop_end > self.duration:
+            self.loop_start = 0
+            self.loop_end = self.duration
+        self._update_looper()
+
+    def on_loop_start(self, instance, value):
+        self.loop_start = min(self.duration - 1, self.loop_start)
+        self.loop_end = max(self.loop_start + 1, self.loop_end)
+        self._update_looper()
+
+    def on_loop_end(self, instance, value):
+        self.loop_end = max(1.0, self.loop_end)
+        self.loop_start = min(self.loop_start, self.loop_end - 1)
+        self._update_looper()
 
     def on_speed(self, instance, value):
         """ Change the speed of the time stretcher. Called when `speed` property changes """
@@ -152,3 +176,10 @@ class Player(EventDispatcher):
         """ Update the pitch scale of the time stretcher from `transpose` and `tuning`. """
         if self._time_stretcher is not None:
             self._time_stretcher.pitch = self.transpose + self.tuning / 100.0
+
+    def _update_looper(self):
+        """ Activate or deactivate the Looper based on looping properties """
+        if self.looping_enabled:
+            self._looper.activate(self.loop_start, self.loop_end)
+        else:
+            self._looper.deactivate()

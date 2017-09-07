@@ -26,7 +26,7 @@
 
             canvas.before:
                 Color:
-                    rgba: 0.5, 0.5, 0.5, 0.5
+                    rgba: 0.5, 0.5, 0.5, 0.3
                 Rectangle:
                     pos: self.pos
                     size: self.size
@@ -44,7 +44,7 @@
             spacing: 8
             canvas.before:
                 Color:
-                    rgba: 0.5, 0.5, 0.5, 0.3
+                    rgba: 0.5, 0.5, 0.5, 0.5
                 Rectangle:
                     pos: self.pos
                     size: self.size
@@ -112,7 +112,7 @@
 
             canvas.before:
                 Color:
-                    rgba: 0.5, 0.5, 0.5, 0.3
+                    rgba: 0.5, 0.5, 0.5, 0.5
                 Rectangle:
                     pos: self.pos
                     size: self.size
@@ -153,6 +153,50 @@
                 value: pitch_plot.yscale
                 on_value: pitch_plot.yscale = self.value
                 range: 1, 20
+
+
+        # Looping toolbar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 48
+            padding: 8, 8
+            spacing: 8
+
+            # Background
+            canvas.before:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.3
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            IconButton:
+                icon: 'looping-enabled' if app.player.looping_enabled else 'looping-disabled'
+                opacity: 1 if app.player.looping_enabled else 0.5
+                size_hint_x: None
+                size: icon_size
+                on_press: app.player.looping_enabled = not app.player.looping_enabled
+
+            Button:
+                text: "Start"
+                size_hint_x: None
+                on_press: app.player.loop_start = app.player.position
+            Button:
+                text: app.format_time(app.player.loop_start)
+                size_hint_x: None
+                on_press: app.player.seek(app.player.loop_start)
+
+            VerticalSeparator:
+
+            Button:
+                text: "End"
+                size_hint_x: None
+                on_press: app.player.loop_end = app.player.position
+            Button:
+                text: app.format_time(app.player.loop_end)
+                size_hint_x: None
+                on_press: app.player.seek(app.player.loop_end)
 
 
         # Speed control
