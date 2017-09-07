@@ -15,8 +15,9 @@ class Player(EventDispatcher):
     playing = BooleanProperty(False)  # Set to True to play, False to pause
     position = NumericProperty(0.0)   # Current playback position in file in seconds
     duration = NumericProperty(0.0)   # Duration of file in seconds
-    speed = BoundedNumericProperty(1.0, min=0.1, max=2.0)  # Playback speed ratio
-    pitch = BoundedNumericProperty(0.0, min=-12, max=12)   # Pitch offset in semitones
+    speed = BoundedNumericProperty(1.0, min=0.1, max=2.0)   # Playback speed ratio
+    transpose = BoundedNumericProperty(0, min=-12, max=12)  # Semitones component of pitch
+    tuning = BoundedNumericProperty(0, min=-50, max=50)     # Cents component of pitch
 
     # File metadata
     title = StringProperty("Title")
@@ -75,10 +76,19 @@ class Player(EventDispatcher):
         if self._time_stretcher is not None:
             self._time_stretcher.speed = value
 
-    def on_pitch(self, instance, value):
-        """ Change the pitch scale of the time stretcher. Called when `pitch` property changes """
-        if self._time_stretcher is not None:
-            self._time_stretcher.pitch = value
+    def increment_transpose(self, semitones):
+        try:
+            self.transpose += semitones
+        except ValueError:
+            pass
+
+    def on_transpose(self, instance, value):
+        self._update_pitch()
+
+    def on_tuning(self, instance, value):
+        if value > -1 and value < 1:
+            self.tuning = 0
+        self._update_pitch()
 
     def on_slider_seek_begin(self):
         """ Called when user starts dragging the position slider """
@@ -137,3 +147,8 @@ class Player(EventDispatcher):
         if self._position_sync_interval:
             self._position_sync_interval.cancel()
             self._position_sync_interval = None
+
+    def _update_pitch(self):
+        """ Update the pitch scale of the time stretcher from `transpose` and `tuning`. """
+        if self._time_stretcher is not None:
+            self._time_stretcher.pitch = self.transpose + self.tuning / 100.0

@@ -6,6 +6,7 @@
 #:import VerticalSeparator tunescope.widgets.VerticalSeparator
 
 #:set icon_size (40, 40)
+#:set small_icon_size (32, 32)
 
 <MainWindow>:
 
@@ -154,15 +155,18 @@
                 range: 1, 20
 
 
-        # Speed/pitch controls
-        GridLayout:
-            cols: 3
+        # Speed control
+        BoxLayout:
+            orientation: 'horizontal'
             size_hint_y: None
-            height: 80
+            height: 48
+            padding: 8, 8
+            spacing: 8
 
             Label:
                 text: "Speed"
                 size_hint_x: None
+                width: self.texture_size[0]
             Slider:
                 value: app.player.speed
                 on_value: app.player.speed = self.value
@@ -172,16 +176,45 @@
                 text: "{:0.2f}".format(app.player.speed)
                 size_hint_x: None
 
+        # Pitch controls
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 48
+            padding: 8, 8
+            spacing: 8
+
             Label:
-                text: "Pitch"
+                text: "Transpose"
                 size_hint_x: None
-            Slider:
-                value: app.player.pitch
-                on_value: app.player.pitch = self.value
-                range: Player.pitch.bounds
-                step: 1
+                width: self.texture_size[0]
+            IconButton:
+                icon: 'minus'
+                size_hint_x: None
+                size: small_icon_size
+                on_release: app.player.increment_transpose(-1)
             Label:
-                text: str(int(app.player.pitch))
+                text: '{:+d}'.format(app.player.transpose)
+                size_hint_x: None
+                width: 32
+            IconButton:
+                icon: 'plus'
+                size_hint_x: None
+                size: small_icon_size
+                on_release: app.player.increment_transpose(1)
+
+            VerticalSeparator:
+
+            Label:
+                text: "Tuning"
+                size_hint_x: None
+                width: self.texture_size[0]
+            Slider:
+                value: app.player.tuning
+                on_value: app.player.tuning = self.value
+                range: Player.tuning.bounds
+            Label:
+                text: '{:+d}'.format(int(round(app.player.tuning)))
                 size_hint_x: None
 
 
