@@ -42,6 +42,7 @@ class MainWindow(Widget):
 
     @_async_engine.async
     def open_file(self, filename):
+        filename = os.path.abspath(filename)
         self.player.open_file(filename)
 
         # FIXME: Refactor
@@ -82,5 +83,5 @@ if __name__ == '__main__':
     tunescope_app = TuneScopeApp()
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        Clock.schedule_once(lambda dt: tunescope_app.player.open_file(filename), 0)
+        Clock.schedule_once(lambda dt: tunescope_app.root.open_file(filename), 0)
     tunescope_app.run()
