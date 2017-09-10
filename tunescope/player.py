@@ -1,6 +1,7 @@
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, BoundedNumericProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
+import numpy as np
 
 from .audiometadata import AudioMetadata
 from .audiodecoder import AudioDecoder
@@ -8,6 +9,11 @@ from .buffering import DecoderBuffer
 from .looper import Looper
 from .timestretcher import TimeStretcher
 from .audiooutput import AudioOutput
+
+
+_FRAMERATE = 60.0
+_POSITION_INTERPOLATION_THRESHOLD = 0.2
+_POSITION_CORRECTION_FRAMES = 60.0
 
 
 class Player(EventDispatcher):
@@ -53,6 +59,10 @@ class Player(EventDispatcher):
         self._time_stretcher.eos_callback = self.on_eos
         self._audio_output = AudioOutput(self._time_stretcher)
 
+        self._previous_pipeline_position = 0.0
+        self._position_error = 0.0
+        self._position_correction_increment = 0.0
+
         metadata = AudioMetadata(filename)
         self.duration = metadata.duration
         self.title = metadata.title
@@ -63,8 +73,6 @@ class Player(EventDispatcher):
         self.seek(0)
         self.speed = 1
         self.pitch = 0
-
-        self._decoder_buffer_previous_position = 0
 
     def on_playing(self, instance, value):
         """ Play or pause playback. Called when `playing` property changes """
@@ -150,21 +158,33 @@ class Player(EventDispatcher):
             self._audio_output.close()
 
     def _sync_position(self, dt):
-        """ Get the current playback position of the pipeline and update the `position` property """
-        position_change = self._decoder_buffer.position - self._decoder_buffer_previous_position
-        if position_change == 0 and self.playing:
-            # Interpolate position between pipeline position updates.
-            # (The precision of the pipeline position is limited by the audio
-            # output buffer size.)
-            self.position += dt * self._time_stretcher.speed
+        """ Update the `position` property from the pipeline position, using interpolation 
+        to correct for infrequent pipeline position updates and jitter """
+        pipeline_position = self._decoder_buffer.position
+        pipeline_position_change = pipeline_position - self._previous_pipeline_position
+        if abs(pipeline_position_change) > _POSITION_INTERPOLATION_THRESHOLD:
+            # Pipeline position changed significantly; sync `position` directly
+            new_position = pipeline_position
         else:
-            self.position = self._decoder_buffer.position
-        self._decoder_buffer_previous_position = self._decoder_buffer.position
+            # Interpolate position, gradually correcting for error between
+            # estimated position and pipeline position
+            new_position = self.position + dt * self.speed
+            if pipeline_position_change != 0:
+                # Pipeline position changed; recalculate error
+                self._position_error = new_position - pipeline_position
+                self._position_correction_increment = (-self._position_error
+                                                       / _POSITION_CORRECTION_FRAMES)
+            if not np.isclose(self._position_error, 0):
+                new_position += self._position_correction_increment
+                self._position_error -= self._position_correction_increment
+        self._previous_pipeline_position = pipeline_position
+        self.position = new_position
 
     def _enable_position_sync(self):
         """ Enable periodic updates of the `position` property from the audio pipeline """
         if not self._position_sync_interval:
-            self._position_sync_interval = Clock.schedule_interval(self._sync_position, 1 / 60)
+            self._position_sync_interval = Clock.schedule_interval(self._sync_position,
+                                                                   1 / _FRAMERATE)
 
     def _disable_position_sync(self):
         """ Disable the above periodic updates, which should be disabled while user is dragging the slider """
