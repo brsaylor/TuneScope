@@ -39,7 +39,8 @@ class FakeAudioSource(object):
 
     def read(self, sample_count):
         start = self._read_position
-        end = start + sample_count
+        end = min(start + sample_count, len(self._samples))
+        # end = start + sample_count
         self._read_position = end
 
         if self.is_eos():
@@ -75,10 +76,10 @@ class FakeAudioSource(object):
 
 
 def test_fake_audio_source():
-    fake_source = FakeAudioSource(2, 10, np.arange(5))
-    assert np.all(fake_source.read(2) == np.array([0, 1]))
-    assert np.all(fake_source.read(2) == np.array([2, 3]))
-    assert np.all(fake_source.read(2) == np.array([4, 0]))
+    fake_source = FakeAudioSource(2, 10, np.arange(20))
+    assert np.all(fake_source.read(10) == np.arange(10))
+    assert np.all(fake_source.read(12)
+                  == np.concatenate((np.arange(10, 20), [0, 0])))
     assert fake_source.is_eos()
     assert np.all(fake_source.read(2) == np.array([0, 0]))
 
@@ -92,6 +93,11 @@ def test_fake_audio_source():
     fake_source.seek(0.1)
     assert fake_source.position == 0.1
     assert fake_source.read(1) == 2
+
+    # After reading past the end, position should == duration
+    fake_source.seek(0)
+    fake_source.read(22)
+    assert fake_source.position == 1
 
 
 class FakeAudioDecoder(object):

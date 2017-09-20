@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 cimport numpy as np
 from numpy cimport ndarray, float32_t
@@ -41,6 +39,10 @@ cdef class TimeStretcher:
     cdef double _pitch
     cdef bint _pitch_changed
 
+    # Position in the input stream that will appear in the output the next time
+    # read() is called, accounting for RB's buffering
+    cdef double _position
+
     cdef rb.RubberBandState _rb_state
 
     # Rubber Band non-interleaved input and output buffers
@@ -52,10 +54,13 @@ cdef class TimeStretcher:
     cdef ndarray _rb_output_buffer
     cdef float **_rb_output_buffer_channel_pointers
 
-    cdef bint _final_input_block_processed
+    cdef bint _final_input_block_submitted
     cdef object _eos_callback
 
-    def __cinit__(self, object audio_source):
+    def __cinit__(self, object audio_source, debug_level=0):
+        """ `debug_level` controls verbosity of RubberBand debugging output,
+        ranging from "0 (errors only) to 3 (very verbose, with audible ticks in
+        the output at phase reset points)" (RB API docs) """
         self.channels = audio_source.channels
         self.samplerate = audio_source.samplerate
 
@@ -63,7 +68,7 @@ cdef class TimeStretcher:
         self._audio_source_is_empty = self._audio_source.is_eos()
         self._speed = 1.0
         self._speed_changed = False
-        self._pitch = 1.0
+        self._pitch = 0.0
         self._pitch_changed = False
 
         self._rb_input_buffer = np.zeros((self.channels, RB_INPUT_BUFFER_SIZE_IN_FRAMES), dtype=np.float32)
@@ -79,8 +84,10 @@ cdef class TimeStretcher:
 
         self._rb_state = rb.rubberband_new(
             audio_source.samplerate, audio_source.channels, rb_options, 1.0, 1.0)
+        rb.rubberband_set_debug_level(self._rb_state, debug_level)
 
-        self._final_input_block_processed = False
+        self._position = audio_source.position
+        self._final_input_block_submitted = False
         self._eos_callback = None
 
     cdef void _set_rb_buffer_channel_pointers(self):
@@ -98,11 +105,14 @@ cdef class TimeStretcher:
         cdef unsigned int frame_count = sample_count / self.channels
         self._update_rb_parameters()
         while (rb.rubberband_available(self._rb_state) < frame_count
-               and not self._final_input_block_processed):
+               and not self._final_input_block_submitted):
             self._process_more_input()
         cdef ndarray output_block = self._retrieve_rb_output(sample_count)
         if self.is_eos() and self._eos_callback is not None:
             self._eos_callback()
+
+        self._update_position(sample_count)
+
         return output_block
 
     cdef void _update_rb_parameters(self):
@@ -140,7 +150,7 @@ cdef class TimeStretcher:
                               is_final_input_block)
 
         if is_final_input_block:
-            self._final_input_block_processed = True
+            self._final_input_block_submitted = True
 
     cdef ndarray _retrieve_rb_output(self, size_t sample_count):
         # Retrieve a block of processed output samples from the Rubber Band instance.
@@ -162,6 +172,46 @@ cdef class TimeStretcher:
 
         return output_block
 
+    cdef void _update_position(self, size_t sample_count):
+        # Update self._position after some output has been retrieved from the RB
+        # stretcher.  `sample_count` is the number of samples read from the
+        # stretcher since the previous call to _update_position().
+
+        cdef double source_position = self._audio_source.position
+        cdef double buffered_input_duration
+        cdef double available_output_duration
+        cdef double new_position
+
+        if self._final_input_block_submitted:
+            # Once the final input block has been passed to
+            # rubberband_process(), RB's buffering behavior changes. For the
+            # last few output blocks, simply increment _position by the expected
+            # change.
+            new_position = (self._position
+                            + <double> sample_count
+                            / self.channels
+                            / self.samplerate
+                            * self._speed)
+        else:
+            # Normal case: base on source position, but account for input and output buffers
+
+            buffered_input_duration = (
+                <double> rb.rubberband_get_buffered_input_duration(self._rb_state)
+                / self.samplerate
+                * rb.rubberband_get_pitch_scale(self._rb_state))
+            # Input buffer contains audio resampled to the new pitch, so we need
+            # to multiply by the pitch scale to get its original duration.
+
+            available_output_duration = (<double> rb.rubberband_available(self._rb_state)
+                                         / self.samplerate
+                                         * self._speed)
+
+            new_position = (source_position
+                            - buffered_input_duration
+                            - available_output_duration)
+
+        self._position = min(new_position, source_position)
+
     cpdef ndarray read_remaining_output(self):
         """ Read and return any remaining output samples that have been
         processed but not yet retrieved. """
@@ -180,7 +230,14 @@ cdef class TimeStretcher:
         """ Enable further processing after end-of-stream
         (e.g. after a seek backward from EOS) """
         rb.rubberband_reset(self._rb_state)
-        self._final_input_block_processed = False
+        self._position = self._audio_source.position
+        self._final_input_block_submitted = False
+
+    @property
+    def position(self):
+        """ Position in the input stream that will appear in the output the next
+        time read() is called, accounting for the effects of time-stretching """
+        return self._position
 
     @property
     def speed(self):
@@ -194,16 +251,13 @@ cdef class TimeStretcher:
 
     @property
     def pitch(self):
-        """ Ratio of playback pitch to original pitch """
+        """ Pitch offset in semitones """
         return self._pitch
 
     @pitch.setter
     def pitch(self, double pitch):
         self._pitch = pitch
         self._pitch_changed = True
-
-    cpdef size_t get_latency(self):
-        return rb.rubberband_get_latency(self._rb_state)
 
     @property
     def eos_callback(self):
@@ -213,6 +267,13 @@ cdef class TimeStretcher:
     @eos_callback.setter
     def eos_callback(self, callback):
         self._eos_callback = callback
+
+    def get_debug_info(self):
+        return {
+            'frames_available': rb.rubberband_available(self._rb_state),
+            'buffered_input_duration': rb.rubberband_get_buffered_input_duration(self._rb_state),
+            'final_input_block_submitted': self._final_input_block_submitted,
+        }
 
     def __dealloc__(self):
         # FIXME: Need to ensure that it's not deleted while read() is running

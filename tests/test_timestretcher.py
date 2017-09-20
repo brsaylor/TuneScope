@@ -1,4 +1,5 @@
 import mock
+import math
 
 import pytest
 import numpy as np
@@ -9,6 +10,13 @@ from test_doubles import FakeAudioSource
 
 def noise(sample_count):
     return np.random.random(sample_count).astype(np.float32) * 2 - 1
+
+
+def impulse(frame_count, channels, impulse_frame):
+    samples = np.zeros(frame_count * channels)
+    for c in range(channels):
+        samples[impulse_frame * channels + c] = 1
+    return samples
 
 
 def rms(samples):
@@ -162,3 +170,90 @@ def test_eos_callback():
     while not stretcher.is_eos():
         stretcher.read(1024)
     assert eos_callback.was_called()
+
+
+@pytest.mark.parametrize(
+    ['channels', 'samplerate', 'speed', 'pitch', 'block_size'],
+    [
+        # Stereo
+        (2, 44100, 1, 0, 4096),
+
+        # Small block size
+        (1, 44100, 1, 0, 64),
+
+        # High samplerate
+        (1, 96000, 1, 0, 4096),
+
+        # Varying speed only
+        (1, 44100, 0.10, 0, 4096),
+        (1, 44100, 0.50, 0, 4096),
+        (1, 44100, 2.00, 0, 4096),
+
+        # Varying pitch only
+        (1, 44100, 1, -12, 4096),  # Fails with tolerance = 0.01
+        (1, 44100, 1, -5, 4096),
+        (1, 44100, 1, 5, 4096),
+        (1, 44100, 1, 12, 4096),
+
+        # Varying speed and pitch
+        (1, 44100, 0.5, 5, 4096),
+        (1, 44100, 1.5, -5, 4096),  # Fails with tolerance = 0.01
+    ])
+def test_position(channels, samplerate, speed, pitch, block_size):
+    tolerance = 0.02
+    input_duration = 1.0
+    input_samples = noise(int(math.ceil(channels * samplerate * input_duration)))
+    source = FakeAudioSource(channels, samplerate, input_samples)
+    stretcher = TimeStretcher(source, debug_level=0)
+    stretcher.speed = speed
+    stretcher.pitch = pitch
+
+    expected_position = 0.0
+    assert stretcher.position == expected_position
+    position_increment = float(block_size) / channels / samplerate * speed
+    while expected_position < input_duration:
+        stretcher.read(block_size)
+        expected_position = min(expected_position + position_increment, input_duration)
+        error = stretcher.position - expected_position
+        try:
+            assert abs(error) <= tolerance
+        except AssertionError:
+            debug_info = stretcher.get_debug_info()
+            print(("expected position:  {:.3f}\n" +
+                   "actual position:    {:.3f}\n" +
+                   "error:              {:.3f}\n" +
+                   "error in frames:    {:d}\n" +
+                   "source position:    {:.3f}\n" +
+                   "buffered:           {:d}\n" +
+                   "final submitted:    {}\n" +
+                   "frames available:   {:d}\n")
+                  .format(
+                      expected_position,
+                      stretcher.position,
+                      error,
+                      int(round(error * samplerate)),
+                      source.position,
+                      debug_info['buffered_input_duration'],
+                      debug_info['final_input_block_submitted'],
+                      debug_info['frames_available']))
+            raise
+
+
+@pytest.mark.skip()
+@pytest.mark.parametrize(
+    ['channels', 'samplerate', 'speed', 'pitch', 'block_size', 'seek_from', 'seek_to'],
+    [
+        (1, 44100, 1, 0, 1024, 0.5, 0.25),
+    ])
+def test_position_after_seek(
+        channels, samplerate, speed, pitch, block_size, seek_from, seek_to):
+    input_samples = noise(channels * samplerate)
+    source = FakeAudioSource(channels, samplerate, input_samples)
+    stretcher = TimeStretcher(source)
+    stretcher.speed = speed
+    stretcher.pitch = pitch
+    while stretcher.position < seek_from:
+        stretcher.read(block_size)
+    expected_position_after_seek = stretcher.position - (seek_from - seek_to)
+    source.seek(seek_to)
+    assert np.isclose(stretcher.position, expected_position_after_seek)

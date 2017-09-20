@@ -75,6 +75,8 @@ cdef extern from '<rubberband/rubberband-c.h>':
 
     cdef extern unsigned int rubberband_get_samples_required(const RubberBandState)
 
+    cdef extern unsigned int rubberband_get_buffered_input_duration(const RubberBandState)
+
     cdef extern void rubberband_set_max_process_size(RubberBandState, unsigned int samples)
     cdef extern void rubberband_set_key_frame_map(RubberBandState, unsigned int keyframecount, unsigned int *from_, unsigned int *to)
 

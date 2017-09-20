@@ -4,6 +4,7 @@ build/
 TuneScope.egg-info/
 packaging/build/
 packaging/dist/
+lib/rubberband/
 
 *.pyc
 *.so
