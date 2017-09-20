@@ -84,9 +84,7 @@ while True:
             elif command == 'l':
                 looper.deactivate()
             elif string_is_number(command):
-                buf.seek(float(command))
-                if stretcher.is_eos():
-                    stretcher.reset()
+                stretcher.seek(float(command))
             else:
                 print('Unrecognized command')
         elif len(args) == 1:

@@ -67,6 +67,8 @@ class FakeAudioSource(object):
             print("waiting for read_event timed out")
 
     def seek(self, position):
+        if position < 0:
+            return False
         self._read_position = int(position * self.channels * self.samplerate)
         return True
 

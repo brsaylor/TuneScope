@@ -239,13 +239,34 @@ def test_position(channels, samplerate, speed, pitch, block_size):
             raise
 
 
+def test_seek():
+    channels = 2
+    samplerate = 44100
+    impulse_frame_offset = 16
+    impulse_frame = samplerate / 2 + impulse_frame_offset
+    input_samples = impulse(samplerate, channels, impulse_frame)
+    source = FakeAudioSource(channels, samplerate, input_samples)
+    stretcher = TimeStretcher(source)
+    assert stretcher.seek(0.5)
+    assert np.isclose(stretcher.position, 0.5)
+    
+    # Check that the impulse appears in the expected position in the output
+    outblock = stretcher.read(64)
+    assert outblock.argmax() == impulse_frame_offset * channels
+
+
+def test_invalid_seek():
+    stretcher = TimeStretcher(FakeAudioSource(2, 44100, noise(882)))
+    assert not stretcher.seek(-1)
+
+
 @pytest.mark.skip()
 @pytest.mark.parametrize(
     ['channels', 'samplerate', 'speed', 'pitch', 'block_size', 'seek_from', 'seek_to'],
     [
-        (1, 44100, 1, 0, 1024, 0.5, 0.25),
+        (1, 44100, 1, 0, 4096, 0.5, 0.25),
     ])
-def test_position_after_seek(
+def test_position_after_source_seek(
         channels, samplerate, speed, pitch, block_size, seek_from, seek_to):
     input_samples = noise(channels * samplerate)
     source = FakeAudioSource(channels, samplerate, input_samples)

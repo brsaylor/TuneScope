@@ -141,14 +141,11 @@ class Player(EventDispatcher):
         This is not done automatically when the `position` property changes
         so that dragging the position slider doesn't cause an immediate seek.
         """
-        if self._decoder_buffer is None:
+        if self._time_stretcher is None:
             return
-        success = self._decoder_buffer.seek(position)
+        success = self._time_stretcher.seek(position)
         if success:
-
             self.position = position
-            if self._time_stretcher.is_eos():
-                self._time_stretcher.reset()
         else:
             print("Error: seek failed")
 
@@ -160,7 +157,7 @@ class Player(EventDispatcher):
     def _sync_position(self, dt):
         """ Update the `position` property from the pipeline position, using interpolation 
         to correct for infrequent pipeline position updates and jitter """
-        pipeline_position = self._decoder_buffer.position
+        pipeline_position = self._time_stretcher.position
         pipeline_position_change = pipeline_position - self._previous_pipeline_position
         if abs(pipeline_position_change) > _POSITION_INTERPOLATION_THRESHOLD:
             # Pipeline position changed significantly; sync `position` directly

@@ -212,6 +212,16 @@ cdef class TimeStretcher:
 
         self._position = min(new_position, source_position)
 
+
+    cpdef bint seek(self, double position):
+        """ Seek to the given position in seconds.
+        Return True on success, False on failure. """
+        if not self._audio_source.seek(position):
+            return False
+        self.reset()
+        return True
+
+
     cpdef ndarray read_remaining_output(self):
         """ Read and return any remaining output samples that have been
         processed but not yet retrieved. """

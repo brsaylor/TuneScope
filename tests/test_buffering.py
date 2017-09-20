@@ -177,5 +177,5 @@ class TestDecoderBuffer(object):
         decoder.samplerate = 3
         buf = DecoderBuffer(decoder, 100)
         buf.read(6)  # Read 1 second
-        buf.seek(0)
+        assert buf.seek(0)
         assert buf.position == 0

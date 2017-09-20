@@ -60,6 +60,15 @@ cdef class Looper:
 
         return self._output_buffer[:samples_buffered]
 
+    cpdef bint seek(self, double position):
+        """ Seek to the given position in seconds.
+        Return True on success, False on failure. """
+        return self._audio_source.seek(position)
+
+    @property
+    def position(self):
+        return self._audio_source.position
+
     cpdef bint is_eos(self):
         """ Return True if end-of-stream has been reached
         and looping is not enabled """

@@ -71,3 +71,25 @@ def test_read_starting_after_loop_end(input_samples, looper):
     looper.activate(0, 0.5)
     assert np.all(looper.read(len(input_samples) / 2)
                   == input_samples[:len(input_samples) / 2])
+
+
+def test_position_while_inactive(looper):
+    frames_read = 0
+    for i in range(SAMPLERATE * CHANNELS):
+        looper.read(1)  # Read a half second of audio
+        frames_read += 1
+        assert looper.position == float(frames_read) / (SAMPLERATE * CHANNELS)
+
+
+def test_position_while_looping_entire_source(looper):
+    looper.activate(0, 1)
+    frames_read = 0
+    for i in range(SAMPLERATE * CHANNELS):
+        looper.read(1)  # Read a half second of audio
+        frames_read += 1
+        assert looper.position == float(frames_read) / (SAMPLERATE * CHANNELS)
+
+
+def test_seek(looper):
+    assert looper.seek(0.5)
+    assert looper.position == 0.5
