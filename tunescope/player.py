@@ -134,7 +134,9 @@ class Player(EventDispatcher):
 
     def on_eos(self):
         """ Called when end of stream is reached """
-        self.playing = False
+        def stop_playing(dt):
+            self.playing = False
+        Clock.schedule_once(stop_playing)
 
     def seek(self, position):
         """ Seek to the given position in the file.
