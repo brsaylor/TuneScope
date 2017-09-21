@@ -3,6 +3,7 @@
 Cython==0.25.2
 Kivy==1.10.0
 aubio==0.4.5
+mercurial
 mock==2.0.0
 numpy==1.12.1
 pathlib2==2.2.1
