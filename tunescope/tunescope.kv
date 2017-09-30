@@ -5,8 +5,8 @@
 #:import IconButton tunescope.widgets.IconButton
 #:import VerticalSeparator tunescope.widgets.VerticalSeparator
 
-#:set icon_size (40, 40)
-#:set small_icon_size (32, 32)
+#:set icon_size ('40dp', '40dp')
+#:set small_icon_size ('32dp', '32dp')
 
 <MainWindow>:
 
@@ -20,9 +20,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 48
-            padding: 8, 8
-            spacing: 8
+            height: '48dp'
+            padding: '8dp', '8dp'
+            spacing: '8dp'
 
             canvas.before:
                 Color:
@@ -40,8 +40,8 @@
             orientation: 'vertical'
             size_hint_y: None
             height: self.minimum_height
-            padding: 8, 8
-            spacing: 8
+            padding: '8dp', '8dp'
+            spacing: '8dp'
             canvas.before:
                 Color:
                     rgba: 0.5, 0.5, 0.5, 0.5
@@ -49,7 +49,7 @@
                     pos: self.pos
                     size: self.size
             Label:
-                text: app.player.title 
+                text: app.player.title
                 size_hint_y: None
                 size: self.texture_size
                 text_size: self.size
@@ -63,12 +63,12 @@
                 text_size: self.size
                 halign: 'left'
 
-    
+
         # Scrolling pitch plot
         ScrollView:
             id: scroll_view
             scroll_type: ['bars', 'content']
-            bar_width: 8
+            bar_width: '8dp'
             bar_color: 0.7, 0.7, 0.7, 0.9
             bar_inactive_color: 0.7, 0.7, 0.7, 0.6
 
@@ -106,9 +106,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 48
-            padding: 8, 8
-            spacing: 8
+            height: '48dp'
+            padding: '8dp', '8dp'
+            spacing: '8dp'
 
             canvas.before:
                 Color:
@@ -132,7 +132,7 @@
             # Spacer
             Widget:
                 size_hint_x: None
-                width: 40
+                width: '40dp'
 
             VerticalSeparator:
             IconButton:
@@ -159,9 +159,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 48
-            padding: 8, 8
-            spacing: 8
+            height: '48dp'
+            padding: '8dp', '8dp'
+            spacing: '8dp'
 
             # Background
             canvas.before:
@@ -181,10 +181,12 @@
             Button:
                 text: "Start"
                 size_hint_x: None
+                width: self.texture_size[0] * 3
                 on_press: app.player.loop_start = app.player.position
             Button:
                 text: app.format_time(app.player.loop_start)
                 size_hint_x: None
+                width: self.texture_size[0] * 3
                 on_press: app.player.seek(app.player.loop_start)
 
             VerticalSeparator:
@@ -192,10 +194,12 @@
             Button:
                 text: "End"
                 size_hint_x: None
+                width: self.texture_size[0] * 3
                 on_press: app.player.loop_end = app.player.position
             Button:
                 text: app.format_time(app.player.loop_end)
                 size_hint_x: None
+                width: self.texture_size[0] * 3
                 on_press: app.player.seek(app.player.loop_end)
 
 
@@ -203,9 +207,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 48
-            padding: 8, 8
-            spacing: 8
+            height: '48dp'
+            padding: '8dp', '8dp'
+            spacing: '8dp'
 
             Label:
                 text: "Speed"
@@ -224,9 +228,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 48
-            padding: 8, 8
-            spacing: 8
+            height: '48dp'
+            padding: '8dp', '8dp'
+            spacing: '8dp'
 
             Label:
                 text: "Transpose"
@@ -240,7 +244,7 @@
             Label:
                 text: '{:+d}'.format(app.player.transpose)
                 size_hint_x: None
-                width: 32
+                width: '32dp'
             IconButton:
                 icon: 'plus'
                 size_hint_x: None
@@ -264,7 +268,7 @@
 
 <VerticalSeparator>
     size_hint_x: None
-    width: 1
+    width: '1dp'
     canvas:
         Color:
             rgba: 1, 1, 1, 0.5
