@@ -1,3 +1,5 @@
+import os.path
+
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, BoundedNumericProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
@@ -9,6 +11,7 @@ from .buffering import DecoderBuffer
 from .looper import Looper
 from .timestretcher import TimeStretcher
 from .audiooutput import AudioOutput
+from .ituneslibrary import ITunesLibrary
 
 
 _FRAMERATE = 60.0
@@ -35,6 +38,7 @@ class Player(EventDispatcher):
     album = StringProperty("Album")
 
     def __init__(self, **kwargs):
+        self.register_event_type('on_itunes_library_found')
         super(Player, self).__init__(**kwargs)
 
         self._audio_decoder = None
@@ -42,12 +46,14 @@ class Player(EventDispatcher):
         self._looper = None
         self._time_stretcher = None
         self._audio_output = None
+        self._filepath = None
+        self._itunes_library = None
 
         self._position_sync_interval = None  # ClockEvent for position sync
 
     def open_file(self, filename):
         """ Open an audio file"""
-
+        self._filepath = filename
         if self._audio_output is not None:
             self._audio_output.close()
 
@@ -63,16 +69,34 @@ class Player(EventDispatcher):
         self._position_error = 0.0
         self._position_correction_increment = 0.0
 
-        metadata = AudioMetadata(filename)
-        self.duration = metadata.duration
-        self.title = metadata.title
-        self.artist = metadata.artist
-        self.album = metadata.album
-
         self.playing = False
         self.seek(0)
         self.speed = 1
         self.pitch = 0
+
+        self.load_metadata()
+
+    def load_metadata(self):
+        """" Populate the player's metadata properties from the tags found in the file and/or the user's iTunes library. """
+        metadata = AudioMetadata(self._filepath)
+        self.duration = metadata.duration
+        if metadata.title == '':
+            if self._itunes_library is not None:
+                metadata = self._itunes_library.get_metadata_by_filepath(self._filepath)
+            else:
+                self.title = os.path.basename(self._filepath)
+                library_filepath = ITunesLibrary.find_itunes_library()
+                if library_filepath:
+                    self.dispatch('on_itunes_library_found')
+                return
+
+        self.title = metadata.title
+        self.artist = metadata.artist
+        self.album = metadata.album
+
+    def load_itunes_library(self):
+        if self._itunes_library is None:
+            self._itunes_library = ITunesLibrary()
 
     def on_playing(self, instance, value):
         """ Play or pause playback. Called when `playing` property changes """
@@ -107,6 +131,9 @@ class Player(EventDispatcher):
         """ Change the speed of the time stretcher. Called when `speed` property changes """
         if self._time_stretcher is not None:
             self._time_stretcher.speed = value
+
+    def on_itunes_library_found(self):
+        pass
 
     def increment_transpose(self, semitones):
         try:
@@ -157,7 +184,7 @@ class Player(EventDispatcher):
             self._audio_output.close()
 
     def _sync_position(self, dt):
-        """ Update the `position` property from the pipeline position, using interpolation 
+        """ Update the `position` property from the pipeline position, using interpolation
         to correct for infrequent pipeline position updates and jitter """
         pipeline_position = self._time_stretcher.position
         pipeline_position_change = pipeline_position - self._previous_pipeline_position

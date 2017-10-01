@@ -6,6 +6,7 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.factory import Factory
 import plyer
 from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
@@ -26,6 +27,7 @@ class MainWindow(Widget):
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_request_close=self.on_request_close)
         Window.bind(on_dropfile=self.on_dropfile)
+        self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
 
     @property
     def player(self):
@@ -56,9 +58,22 @@ class MainWindow(Widget):
     def on_dropfile(self, window, filename):
         self.open_file(filename)
 
+    def on_itunes_library_found(self, window):
+        popup = Factory.ITunesConfirmationPopup()
+        self.itunes_confirmation_popup = popup
+        popup.ids.no_button.bind(on_press=popup.dismiss)
+        popup.ids.yes_button.bind(on_press=self._grant_itunes_library_permission)
+        popup.open()
+
+    def _grant_itunes_library_permission(self, instance):
+        self.itunes_confirmation_popup.dismiss()
+        self.player.load_itunes_library()
+        self.player.load_metadata()
+
     def on_request_close(self, window):
         self.player.close_audio_device()
         return False  # False means go ahead and close the window
+
 
 
 class TuneScopeApp(App):
