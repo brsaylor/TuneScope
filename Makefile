@@ -23,4 +23,5 @@ clean:
 	rm -rf build/
 	rm -f tunescope/*.{pyc,so}
 	rm -rf tunescope/__pycache__
+	rm -rf tests/__pycache__
 	rm -rf packaging/build/ packaging/dist/
