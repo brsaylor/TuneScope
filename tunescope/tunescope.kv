@@ -3,10 +3,7 @@
 #:import Player tunescope.player.Player
 #:import PitchPlot tunescope.visualization.PitchPlot
 #:import IconButton tunescope.widgets.IconButton
-#:import VerticalSeparator tunescope.widgets.VerticalSeparator
 
-#:set icon_size ('40dp', '40dp')
-#:set small_icon_size ('32dp', '32dp')
 
 <MainWindow>:
 
@@ -17,37 +14,20 @@
 
 
         # Main toolbar
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '48dp'
-            padding: '8dp', '8dp'
-            spacing: '8dp'
+        Toolbar:
+            background_color: 0.5, 0.5, 0.5, 0.3
 
-            canvas.before:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.3
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
             Button:
                 text: "Open"
-                on_release: root.show_open_dialog()
+                on_press: root.show_open_dialog()
 
 
         # Media info bar
-        BoxLayout:
+        Toolbar:
             orientation: 'vertical'
-            size_hint_y: None
             height: self.minimum_height
-            padding: '8dp', '8dp'
-            spacing: '8dp'
-            canvas.before:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.5
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+            background_color: 0.5, 0.5, 0.5, 0.5
+
             Label:
                 text: app.player.title
                 size_hint_y: None
@@ -103,30 +83,16 @@
 
 
         # Player toolbar
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '48dp'
-            padding: '8dp', '8dp'
-            spacing: '8dp'
+        Toolbar:
+            background_color: 0.5, 0.5, 0.5, 0.5 
 
-            canvas.before:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.5
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-
-            IconButton:
+            LargeIconButton:
                 icon: 'pause' if app.player.playing else 'play'
-                on_release: app.player.playing = not app.player.playing
-                size_hint_x: None
-                size: icon_size
+                on_press: app.player.playing = not app.player.playing
                 pos_hint: {'center_y': 0.5}
             Label:
                 text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
                 size_hint_x: None
-                pos_hint: {'center_y': 0.5}
                 size: self.texture_size
 
             # Spacer
@@ -135,20 +101,16 @@
                 width: '40dp'
 
             VerticalSeparator:
-            IconButton:
+            LargeIconButton:
                 icon: 'zoom-horizontal'
-                size_hint_x: None
-                size: icon_size
             Slider:
                 value: pitch_plot.xscale
                 on_value: pitch_plot.xscale = self.value
                 range: 1, 20
 
             VerticalSeparator:
-            IconButton:
+            LargeIconButton:
                 icon: 'zoom-vertical'
-                size_hint_x: None
-                size: icon_size
             Slider:
                 value: pitch_plot.yscale
                 on_value: pitch_plot.yscale = self.value
@@ -156,26 +118,12 @@
 
 
         # Looping toolbar
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '48dp'
-            padding: '8dp', '8dp'
-            spacing: '8dp'
+        Toolbar:
+            background_color: 0.5, 0.5, 0.5, 0.3
 
-            # Background
-            canvas.before:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.3
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-
-            IconButton:
+            LargeIconButton:
                 icon: 'looping-enabled' if app.player.looping_enabled else 'looping-disabled'
                 opacity: 1 if app.player.looping_enabled else 0.5
-                size_hint_x: None
-                size: icon_size
                 on_press: app.player.looping_enabled = not app.player.looping_enabled
 
             Button:
@@ -204,13 +152,7 @@
 
 
         # Speed control
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '48dp'
-            padding: '8dp', '8dp'
-            spacing: '8dp'
-
+        Toolbar:
             Label:
                 text: "Speed"
                 size_hint_x: None
@@ -225,31 +167,21 @@
                 size_hint_x: None
 
         # Pitch controls
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '48dp'
-            padding: '8dp', '8dp'
-            spacing: '8dp'
-
+        Toolbar:
             Label:
                 text: "Transpose"
                 size_hint_x: None
                 width: self.texture_size[0]
-            IconButton:
+            SmallIconButton:
                 icon: 'minus'
-                size_hint_x: None
-                size: small_icon_size
-                on_release: app.player.increment_transpose(-1)
+                on_press: app.player.increment_transpose(-1)
             Label:
                 text: '{:+d}'.format(app.player.transpose)
                 size_hint_x: None
                 width: '32dp'
-            IconButton:
+            SmallIconButton:
                 icon: 'plus'
-                size_hint_x: None
-                size: small_icon_size
-                on_release: app.player.increment_transpose(1)
+                on_press: app.player.increment_transpose(1)
 
             VerticalSeparator:
 
@@ -266,7 +198,24 @@
                 size_hint_x: None
 
 
-<VerticalSeparator>
+<Toolbar@BoxLayout>
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '48dp'
+    padding: '8dp', '8dp'
+    spacing: '8dp'
+
+    background_color: 0.5, 0.5, 0.5, 0.5
+
+    canvas.before:
+        Color:
+            rgba: self.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<VerticalSeparator@Widget>
     size_hint_x: None
     width: '1dp'
     canvas:
@@ -274,3 +223,13 @@
             rgba: 1, 1, 1, 0.5
         Line:
             points: self.x, self.y, self.x, self.y + self.height
+
+
+<LargeIconButton@IconButton>
+    size_hint_x: None
+    size: '40dp', '40dp'
+
+
+<SmallIconButton@IconButton>
+    size_hint_x: None
+    size: '32dp', '32dp'

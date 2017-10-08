@@ -35,8 +35,3 @@ class IconButton(ButtonBehavior, Image):
     def on_icon(self, instance, value):
         self.source = 'data/icons/png/{}.png'.format(value)
         self.mipmap = True
-
-
-class VerticalSeparator(Widget):
-    """ A vertical separator line. Defined in tunescope.kv """
-    pass
