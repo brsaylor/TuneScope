@@ -15,6 +15,7 @@ from tunescope.player import Player
 from tunescope.audiodecoder import AudioDecoder
 from tunescope.buffering import DecoderBuffer
 from tunescope.analysis import Analyzer
+from tunescope.util import bind_properties
 
 
 _async_engine = KivyEngine()
@@ -28,6 +29,39 @@ class MainWindow(Widget):
         Window.bind(on_request_close=self.on_request_close)
         Window.bind(on_dropfile=self.on_dropfile)
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
+        self._bind_selection_marker('selection_start')
+        self._bind_selection_marker('selection_end')
+
+    def _bind_selection_marker(self, property_name):
+        """ Connect the selection marker with the corresponding selection bound property """
+        marker = self.ids[property_name + '_marker']
+        player = self.player
+        pitch_plot = self.ids.pitch_plot
+        scroll_view = self.ids.scroll_view
+        root = self
+
+        def update_marker_x(root, player, pitch_plot):
+            if player.duration == 0:
+                return
+            marker.x = (
+                root.width / 2
+                - (player.position - getattr(player, property_name))
+                / player.duration * pitch_plot.width)
+
+        def update_selection_bound(marker, drag_x):
+            if pitch_plot.width == 0:
+                return
+            bound = ((drag_x + (scroll_view.scroll_x * pitch_plot.width) - root.width / 2)
+                     / pitch_plot.width * player.duration)
+            setattr(player, property_name, bound)
+
+        bind_properties([
+            (self, 'width'),
+            (self.player, 'position', property_name, 'duration'),
+            (self.ids.pitch_plot, 'width'),
+        ], update_marker_x)
+
+        marker.bind(drag_x=update_selection_bound)
 
     @property
     def player(self):

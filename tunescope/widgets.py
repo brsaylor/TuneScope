@@ -2,7 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.slider import Slider
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 
 
 class PlayerPositionSlider(Slider):
@@ -35,3 +35,30 @@ class IconButton(ButtonBehavior, Image):
     def on_icon(self, instance, value):
         self.source = 'data/icons/png/{}.png'.format(value)
         self.mipmap = True
+
+
+class SelectionMarker(Widget):
+
+    is_end_marker = BooleanProperty(False)
+
+    drag_x = NumericProperty()
+    """ This is what the x position of this widget would be if dragging actually
+    caused it to move. """
+
+    def __init__(self, **kwargs):
+        super(SelectionMarker, self).__init__(**kwargs)
+
+    def on_touch_down(self, touch):
+        if self.ids.triangle.collide_point(*touch.pos):
+            touch.grab(self)
+            self._touch_offset = touch.x - self.x
+            return True
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is self:
+            self.drag_x = touch.x - self._touch_offset
+            return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)

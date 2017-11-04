@@ -4,6 +4,7 @@
 #:import PitchPlot tunescope.visualization.PitchPlot
 #:import IconButton tunescope.widgets.IconButton
 #:import Factory kivy.factory.Factory
+#:import SelectionMarker tunescope.widgets.SelectionMarker
 
 <MainWindow>:
 
@@ -44,43 +45,50 @@
                 halign: 'left'
 
 
-        # Scrolling pitch plot
-        ScrollView:
-            id: scroll_view
-            scroll_type: ['bars', 'content']
-            bar_width: '8dp'
-            bar_color: 0.7, 0.7, 0.7, 0.9
-            bar_inactive_color: 0.7, 0.7, 0.7, 0.6
+        RelativeLayout:
+            # Scrolling pitch plot
+            ScrollView:
+                id: scroll_view
+                scroll_type: ['bars', 'content']
+                bar_width: '8dp'
+                bar_color: 0.7, 0.7, 0.7, 0.9
+                bar_inactive_color: 0.7, 0.7, 0.7, 0.6
 
-            scroll_x: (app.player.position / app.player.duration) if app.player.duration > 0 else 0
+                scroll_x: (app.player.position / app.player.duration) if app.player.duration > 0 else 0
 
-            # Disable scrolling intertia
-            effect_x: ScrollEffect(friction=1)
-            effect_y: ScrollEffect(friction=1)
+                # Disable scrolling intertia
+                effect_x: ScrollEffect(friction=1)
+                effect_y: ScrollEffect(friction=1)
 
-            on_scroll_start: app.player.on_slider_seek_begin()
-            on_scroll_move: app.player.position = self.scroll_x * app.player.duration
-            on_scroll_stop: app.player.on_slider_seek_end()
+                on_scroll_start: app.player.on_slider_seek_begin()
+                on_scroll_move: app.player.position = self.scroll_x * app.player.duration
+                on_scroll_stop: app.player.on_slider_seek_end()
 
-            canvas.after:
+                canvas.after:
 
-                # Center line
-                Color:
-                    rgb: 1, 1, 1
-                Line:
-                    points: [self.width / 2, self.y, self.width / 2, self.y + self.height]
+                    # Center line
+                    Color:
+                        rgb: 1, 1, 1
+                    Line:
+                        points: [self.width / 2, self.y, self.width / 2, self.y + self.height]
 
-            # Pitch plot with padding on left and right, allowing the left and
-            # right ends of the plot to align with the center line
-            AnchorLayout:
-                anchor_x: 'center'
-                width: scroll_view.width + pitch_plot.width
-                height: pitch_plot.height
-                size_hint: (None, None)
-                PitchPlot:
-                    id: pitch_plot
+                # Pitch plot with padding on left and right, allowing the left and
+                # right ends of the plot to align with the center line
+                AnchorLayout:
+                    anchor_x: 'center'
+                    width: scroll_view.width + pitch_plot.width
+                    height: pitch_plot.height
                     size_hint: (None, None)
+                    PitchPlot:
+                        id: pitch_plot
+                        size_hint: (None, None)
 
+            SelectionMarker:
+                id: selection_start_marker
+
+            SelectionMarker:
+                id: selection_end_marker
+                is_end_marker: True
 
         # Player toolbar
         Toolbar:
@@ -92,6 +100,7 @@
                 pos_hint: {'center_y': 0.5}
             Label:
                 text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
+                font_name: 'DejaVuSans'
                 size_hint_x: None
                 size: self.texture_size
 
@@ -117,7 +126,7 @@
                 range: 1, 20
 
 
-        # Looping toolbar
+        # Selection toolbar
         Toolbar:
             background_color: 0.5, 0.5, 0.5, 0.3
 
@@ -129,26 +138,28 @@
             Button:
                 text: "Start"
                 size_hint_x: None
-                width: self.texture_size[0] * 3
-                on_press: app.player.loop_start = app.player.position
+                width: '100dp'
+                on_press: app.player.selection_start = app.player.position
             Button:
-                text: app.format_time(app.player.loop_start)
+                text: app.format_time(app.player.selection_start)
+                font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: self.texture_size[0] * 3
-                on_press: app.player.seek(app.player.loop_start)
+                width: '100dp'
+                on_press: app.player.seek(app.player.selection_start)
 
             VerticalSeparator:
 
             Button:
                 text: "End"
                 size_hint_x: None
-                width: self.texture_size[0] * 3
-                on_press: app.player.loop_end = app.player.position
+                width: '100dp'
+                on_press: app.player.selection_end = app.player.position
             Button:
-                text: app.format_time(app.player.loop_end)
+                text: app.format_time(app.player.selection_end)
+                font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: self.texture_size[0] * 3
-                on_press: app.player.seek(app.player.loop_end)
+                width: '100dp'
+                on_press: app.player.seek(app.player.selection_end)
 
 
         # Speed control
@@ -198,7 +209,7 @@
                 size_hint_x: None
 
 
-<Toolbar@BoxLayout>
+<Toolbar@BoxLayout>:
     orientation: 'horizontal'
     size_hint_y: None
     height: '48dp'
@@ -215,7 +226,7 @@
             size: self.size
 
 
-<VerticalSeparator@Widget>
+<VerticalSeparator@Widget>:
     size_hint_x: None
     width: '1dp'
     canvas:
@@ -225,12 +236,12 @@
             points: self.x, self.y, self.x, self.y + self.height
 
 
-<LargeIconButton@IconButton>
+<LargeIconButton@IconButton>:
     size_hint_x: None
     size: '40dp', '40dp'
 
 
-<SmallIconButton@IconButton>
+<SmallIconButton@IconButton>:
     size_hint_x: None
     size: '32dp', '32dp'
 
@@ -258,3 +269,33 @@
             Button:
                 id: yes_button
                 text: "Yes"
+
+<SelectionMarker>:
+    size_hint_x: None
+    width: '24dp'
+    
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1 
+        Line:
+            points: root.x, 0, root.x, self.height
+            width: dp(1)
+    
+    Image:
+        id: triangle
+        x: root.x - (root.width if root.is_end_marker else 0)
+        opacity: 0.5
+        width: root.width
+        height: '48dp'
+        source: 'data/icons/png/selection-marker.png'
+        mipmap: True
+
+        canvas.before:
+            PushMatrix
+            Scale:
+                x: -1 if root.is_end_marker else 1
+                origin: root.pos
+            Translate:
+                x: 1 + (root.width if root.is_end_marker else 0)
+        canvas.after:
+            PopMatrix

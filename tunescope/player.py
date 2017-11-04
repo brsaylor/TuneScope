@@ -29,8 +29,8 @@ class Player(EventDispatcher):
     transpose = BoundedNumericProperty(0, min=-12, max=12)  # Semitones component of pitch
     tuning = BoundedNumericProperty(0, min=-50, max=50)     # Cents component of pitch
     looping_enabled = BooleanProperty(False)
-    loop_start = NumericProperty(0.0)
-    loop_end = NumericProperty(0.0)
+    selection_start = NumericProperty(0.0)
+    selection_end = NumericProperty(0.0)
 
     # File metadata
     title = StringProperty("Title")
@@ -93,6 +93,12 @@ class Player(EventDispatcher):
         self.title = metadata.title
         self.artist = metadata.artist
         self.album = metadata.album
+        self.playing = False
+        self.seek(0)
+        self.speed = 1
+        self.pitch = 0
+        self.selection_start = 0
+        self.selection_end = self.duration
 
     def load_itunes_library(self):
         if self._itunes_library is None:
@@ -112,19 +118,25 @@ class Player(EventDispatcher):
     def on_looping_enabled(self, instance, value):
         if not self._looper:
             return False
-        if self.loop_start >= self.loop_end or self.loop_end > self.duration:
-            self.loop_start = 0
-            self.loop_end = self.duration
+        if self.selection_start >= self.selection_end or self.selection_end > self.duration:
+            self.selection_start = 0
+            self.selection_end = self.duration
         self._update_looper()
 
-    def on_loop_start(self, instance, value):
-        self.loop_start = min(self.duration - 1, self.loop_start)
-        self.loop_end = max(self.loop_start + 1, self.loop_end)
+    def on_selection_start(self, instance, value):
+        if value < 0:
+            self.selection_start = 0
+        else:
+            self.selection_start = min(self.duration - 1, self.selection_start)
+        self.selection_end = max(self.selection_start + 1, self.selection_end)
         self._update_looper()
 
-    def on_loop_end(self, instance, value):
-        self.loop_end = max(1.0, self.loop_end)
-        self.loop_start = min(self.loop_start, self.loop_end - 1)
+    def on_selection_end(self, instance, value):
+        if value > self.duration:
+            self.selection_end = self.duration
+        else:
+            self.selection_end = max(1.0, self.selection_end)
+        self.selection_start = min(self.selection_start, self.selection_end - 1)
         self._update_looper()
 
     def on_speed(self, instance, value):
@@ -226,6 +238,6 @@ class Player(EventDispatcher):
     def _update_looper(self):
         """ Activate or deactivate the Looper based on looping properties """
         if self.looping_enabled:
-            self._looper.activate(self.loop_start, self.loop_end)
+            self._looper.activate(self.selection_start, self.selection_end)
         else:
             self._looper.deactivate()
