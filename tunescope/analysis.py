@@ -20,6 +20,8 @@ class Analyzer(object):
         which returns a NumPy float32 array of length `sample_count`.
     duration : float
         Duration of input in seconds
+    on_progress : function
+        Called periodically to report progress with an argument between 0 and 1
 
     Attributes
     ----------
@@ -28,10 +30,11 @@ class Analyzer(object):
         Will be None until analyze() is called.
     """
 
-    def __init__(self, audio_source, duration):
+    def __init__(self, audio_source, duration, on_progress=None):
         self._audio_source = audio_source
         self._duration = duration
         self.pitch = None
+        self.on_progress = on_progress
 
     def analyze(self):
         """ Perform the analysis """
@@ -49,3 +52,5 @@ class Analyzer(object):
             frames = self._audio_source.read(HOP_SIZE * self._audio_source.channels).reshape((-1, self._audio_source.channels))
             frames_mono = frames.mean(axis=1)
             self.pitch[hop] = pitch_detector(frames_mono)[0]
+            if self.on_progress:
+                self.on_progress(float(hop + 1) / duration_hops)

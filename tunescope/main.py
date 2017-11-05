@@ -5,8 +5,10 @@ import os.path
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.properties import NumericProperty, BooleanProperty
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
+from kivy.animation import Animation
 import plyer
 from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
@@ -23,6 +25,9 @@ _async_engine = KivyEngine()
 
 class MainWindow(Widget):
     """ Main application window """
+
+    loading = BooleanProperty(False)
+    loading_progress = NumericProperty(0)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
@@ -78,16 +83,26 @@ class MainWindow(Widget):
 
     @_async_engine.async
     def open_file(self, filename):
+        self.ids.pitch_plot.clear()
+        self.loading = True
+        self.loading_progress = 0
+        self.ids.loading_progress_label.opacity = 1
         filename = os.path.abspath(filename)
         self.player.open_file(filename)
 
         # FIXME: Refactor
         decoder = AudioDecoder(filename)
         buf = DecoderBuffer(decoder, 4096)
-        analyzer = Analyzer(buf, self.player.duration)
-
+        analyzer = Analyzer(buf, self.player.duration,
+                            on_progress=self._update_loading_progress)
         yield Task(analyzer.analyze)
         yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
+        self.loading = False
+        fadeout = Animation(opacity=0, duration=1)
+        fadeout.start(self.ids.loading_progress_label)
+
+    def _update_loading_progress(self, progress):
+        self.loading_progress = int(round(progress * 100))
 
     def on_dropfile(self, window, filename):
         self.open_file(filename)

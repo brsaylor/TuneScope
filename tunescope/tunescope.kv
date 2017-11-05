@@ -46,6 +46,8 @@
 
 
         RelativeLayout:
+            id: scope_view_container
+
             # Scrolling pitch plot
             ScrollView:
                 id: scroll_view
@@ -78,10 +80,10 @@
                     anchor_x: 'center'
                     width: scroll_view.width + pitch_plot.width
                     height: pitch_plot.height
-                    size_hint: (None, None)
+                    size_hint: None, None
                     PitchPlot:
                         id: pitch_plot
-                        size_hint: (None, None)
+                        size_hint: None, None
 
             SelectionMarker:
                 id: selection_start_marker
@@ -89,6 +91,28 @@
             SelectionMarker:
                 id: selection_end_marker
                 is_end_marker: True
+
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+
+                Label:
+                    id: loading_progress_label
+                    text: " {:d}%".format(root.loading_progress)
+                    font_size: '24dp'
+                    size_hint: None, None
+                    size: dp(100), dp(50)
+                    color: 0, 0, 0, 0.7
+                    halign: 'center'
+                    valign: 'middle'
+
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 0.7
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(16)]
 
         # Player toolbar
         Toolbar:

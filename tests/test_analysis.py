@@ -1,14 +1,10 @@
 from __future__ import division
 import math
-import wave
 
 import pytest
 import numpy as np
 
-from tunescope.analysis import *
-from tunescope.audiodecoder import AudioDecoder
-from tunescope.buffering import DecoderBuffer
-from tunescope.audiometadata import AudioMetadata
+from tunescope.analysis import Analyzer
 from test_doubles import FakeAudioSource
 
 
@@ -32,3 +28,18 @@ def test_pitch_A440(A440_sine_wave):
 
     # Check that pitch is 69 (A440), within half a semitone
     assert np.allclose(analyzer.pitch, 69, atol=0.5)
+
+
+def test_on_progress(A440_sine_wave):
+
+    outer_scope = {'prev_progress': 0}
+
+    def on_progress(progress):
+        assert progress > outer_scope['prev_progress']
+        outer_scope['prev_progress'] = progress
+
+    source = FakeAudioSource(1, SINE_WAVE_SAMPLERATE, A440_sine_wave)
+    analyzer = Analyzer(source, SINE_WAVE_DURATION, on_progress=on_progress)
+    analyzer.analyze()
+
+    assert outer_scope['prev_progress'] == 1

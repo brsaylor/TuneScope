@@ -54,6 +54,9 @@ class PitchPlot(RelativeLayout):
         # Update the drawing instructions on the canvas from the main thread
         Clock.schedule_once(self._update_canvas, 0)
 
+    def clear(self):
+        self.plot(np.zeros(1))
+
     def _update_canvas(self, dt):
         self.canvas.clear()
         with self.canvas:
