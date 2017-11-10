@@ -1,12 +1,14 @@
 // This file encapsulates all the GStreamer-aware code for the AudioDecoder class.
 
 #include <stdio.h>
+#include <string.h>
 #include <gst/gst.h>
 #include <gst/audio/audio.h>
 #include <gst/app/gstappsink.h>
 #include <glib.h>
 
 #define BUFFER_INITIAL_CAPACITY 64
+#define MAX_ERROR_MESSAGE_LENGTH 200
 
 
 // A buffer containing audio samples in 32-bit float format
@@ -30,7 +32,22 @@ typedef struct {
     GstElement *pipeline, *source, *decoder, *converter, *appsink;
     AudioDecoderBuffer buffer;
     AudioDecoderMetadata metadata;
+    char *error;
 } AudioDecoderHandle;
+
+
+static void set_error(AudioDecoderHandle *handle, char *error)
+{
+    if (handle->error != NULL) {
+        g_free(handle->error);
+    }
+    size_t length = strlen(error);
+    if (length > MAX_ERROR_MESSAGE_LENGTH) {
+        length = MAX_ERROR_MESSAGE_LENGTH;
+    }
+    handle->error = g_malloc0(length + 1);
+    strncpy(handle->error, error, length);
+}
 
 
 // Links the decoder to the converter when the audio source pad appears on the decoder
@@ -57,7 +74,7 @@ static void on_pad_added(GstElement *element, GstPad *pad, gpointer data)
     // Get audio info
     GstAudioInfo audio_info;
     if (!gst_audio_info_from_caps(&audio_info, caps)) {
-        g_error("Could not get audio info from file\n");
+        set_error(handle, "Could not get audio info from file");
         gst_caps_unref(caps);
         gst_object_unref(sinkpad);
         return;
@@ -79,6 +96,7 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     AudioDecoderHandle *handle = (AudioDecoderHandle *) g_malloc0(sizeof(AudioDecoderHandle));
     handle->metadata.channels = 0;
     handle->metadata.samplerate = 0;
+    handle->error = NULL;
 
     // Initialize output buffer
     handle->buffer.samples = g_malloc0(BUFFER_INITIAL_CAPACITY * sizeof(float));
@@ -92,8 +110,8 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     handle->converter = gst_element_factory_make("audioconvert", "converter");
     handle->appsink = gst_element_factory_make("appsink", "appsink");
     if (!handle->pipeline || !handle->source || !handle->decoder || !handle->converter || !handle->appsink) {
-        g_printerr ("One element could not be created. Exiting.\n");
-        return NULL;
+        set_error(handle, "Could not create GStreamer pipeline");
+        return handle;
     }
 
     // Set up the appsink to accept only 32-bit float audio
@@ -136,10 +154,47 @@ AudioDecoderHandle *audiodecoder_gst_new(char *filename)
     gst_pipeline_use_clock(GST_PIPELINE(handle->pipeline), NULL);  // Make pipeline run as fast as possible
     gst_element_set_state(handle->pipeline, GST_STATE_PLAYING);
 
-    // Ensure audio metadata is ready (i.e. on_pad_added() gets called)
-    gst_app_sink_pull_preroll(GST_APP_SINK(handle->appsink));
+    // Wait for the pipeline to enter PLAYING state, or error
+    int pipeline_ready = 0;
+    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(handle->pipeline));
+    GstMessage *msg;
+    GstState new_state;
+    GError *err = NULL;
+    gchar *dbg_info = NULL;
+    while (!pipeline_ready && !handle->error) {
+        msg = gst_bus_timed_pop(bus, GST_SECOND);
+        if (msg == NULL) {
+            set_error(handle, "GStreamer bus timeout");
+        }
+        switch (GST_MESSAGE_TYPE(msg)) {
+
+            case GST_MESSAGE_STATE_CHANGED:
+                gst_message_parse_state_changed(msg, NULL, &new_state, NULL);
+                if (msg->src == GST_OBJECT(handle->pipeline)
+                        && new_state == GST_STATE_PLAYING) {
+                    pipeline_ready = TRUE;
+                }
+                break;
+
+            case GST_MESSAGE_ERROR:
+                gst_message_parse_error(msg, &err, &dbg_info);
+                set_error(handle, err->message);
+                g_error_free(err);
+                g_free(dbg_info);
+                break;
+
+            default:
+                break;
+        }
+    }
 
     return handle;
+}
+
+
+char *audiodecoder_gst_get_error(AudioDecoderHandle *handle)
+{
+    return handle->error;
 }
 
 
@@ -259,5 +314,8 @@ void audiodecoder_gst_delete(AudioDecoderHandle *handle)
     gst_element_set_state(handle->pipeline, GST_STATE_NULL);
     g_object_unref(handle->pipeline);
     g_free(handle->buffer.samples);
+    if (handle->error != NULL) {
+        g_free(handle->error);
+    }
     g_free(handle);
 }

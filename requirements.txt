@@ -1,7 +1,8 @@
 -e git+https://github.com/brsaylor/async_gui.git#egg=async_gui
 -e git+https://github.com/kivy/pyobjus.git@e932bda93b74687da63fcc545b4942bed9fd43bf#egg=pyobjus
 Cython==0.25.2
-Kivy==1.10.0
+#Kivy==1.10.0
+-e git+https://github.com/kivy/kivy.git#egg=Kivy
 aubio==0.4.5
 mercurial
 mock==2.0.0

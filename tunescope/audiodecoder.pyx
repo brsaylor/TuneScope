@@ -21,6 +21,7 @@ cdef extern from "audiodecoder-gst.c":
         pass
 
     AudioDecoderHandle *audiodecoder_gst_new(char *filename)
+    char *audiodecoder_gst_get_error(AudioDecoderHandle *handle)
     AudioDecoderBuffer *audiodecoder_gst_read(AudioDecoderHandle *handle)
     AudioDecoderMetadata *audiodecoder_gst_get_metadata(AudioDecoderHandle *handle)
     int audiodecoder_gst_seek(AudioDecoderHandle *handle, double position)
@@ -42,6 +43,11 @@ cdef class AudioDecoder:
             raise IOError("No such file: '{}'".format(filename))
         audiobackend.initialize_if_not_initialized()
         self._handle = audiodecoder_gst_new(filename)
+
+        cdef char *error = audiodecoder_gst_get_error(self._handle)
+        if error:
+            raise IOError(error)
+
         self._metadata = audiodecoder_gst_get_metadata(self._handle)
 
     cpdef bint is_eos(self):

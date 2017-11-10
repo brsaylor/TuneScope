@@ -1,9 +1,9 @@
 #:import ScrollEffect kivy.effects.scroll.ScrollEffect
+#:import Factory kivy.factory.Factory
 
 #:import Player tunescope.player.Player
 #:import PitchPlot tunescope.visualization.PitchPlot
 #:import IconButton tunescope.widgets.IconButton
-#:import Factory kivy.factory.Factory
 #:import SelectionMarker tunescope.widgets.SelectionMarker
 
 <MainWindow>:
@@ -269,6 +269,7 @@
     size_hint_x: None
     size: '32dp', '32dp'
 
+
 <ITunesConfirmationPopup@Popup>:
     title: "Search iTunes Library?"
     auto_dismiss: False
@@ -293,6 +294,23 @@
             Button:
                 id: yes_button
                 text: "Yes"
+
+
+<ErrorDialog@Popup>:
+    size_hint: None, None
+    size: '400dp', '300dp'
+    auto_dismiss: False
+    message: "Unknown error"
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: root.message
+        Button:
+            text: 'OK'
+            size_hint_y: None
+            height: '40dp'
+            on_release: root.dismiss()
+
 
 <SelectionMarker>:
     size_hint_x: None

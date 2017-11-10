@@ -6,7 +6,6 @@ import numpy as np
 
 from tunescope.audiodecoder import AudioDecoder
 
-# TODO: Test reading invalid files
 # TODO: Test reading audio from video files
 
 
@@ -115,3 +114,11 @@ def test_seek_after_eos(wav_file, wav_file_samples):
 
     assert np.allclose(samples_after_seek[:len(wav_file_samples)],
                        wav_file_samples, atol=0.001)
+
+
+def test_read_invalid_file(tmpdir_factory):
+    file_path = str(tmpdir_factory.mktemp('audio').join('random.raw'))
+    with open(file_path, 'wb') as f:
+        f.write(np.random.bytes(1000))
+    with pytest.raises(IOError, match='Could not determine type of stream'):
+        AudioDecoder(file_path)

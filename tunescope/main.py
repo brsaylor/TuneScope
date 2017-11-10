@@ -83,12 +83,20 @@ class MainWindow(Widget):
 
     @_async_engine.async
     def open_file(self, filename):
+        filename = os.path.abspath(filename)
+
+        try:
+            self.player.open_file(filename)
+        except IOError as e:
+            popup = Factory.ErrorDialog(title='Error opening file')
+            popup.message = e.message
+            popup.open()
+            return
+
         self.ids.pitch_plot.clear()
         self.loading = True
         self.loading_progress = 0
         self.ids.loading_progress_label.opacity = 1
-        filename = os.path.abspath(filename)
-        self.player.open_file(filename)
 
         # FIXME: Refactor
         decoder = AudioDecoder(filename)
