@@ -3,7 +3,7 @@ cimport numpy as np
 from numpy cimport ndarray, float32_t
 from libc.stdlib cimport malloc, free
 
-from tunescope cimport rubberband as rb
+from . cimport rubberband as rb
 
 
 MIN_SPEED = 0.005

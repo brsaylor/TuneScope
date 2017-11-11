@@ -3,12 +3,8 @@
 import sys
 import argparse
 
-from tunescope.audiometadata import AudioMetadata
-from tunescope.audiodecoder import AudioDecoder
-from tunescope.buffering import DecoderBuffer
-from tunescope.looper import Looper
-from tunescope.timestretcher import TimeStretcher
-from tunescope.audiooutput import AudioOutput
+from tunescope.audio import (AudioMetadata, AudioDecoder, DecoderBuffer,
+                             Looper, TimeStretcher, AudioOutput)
 
 
 def string_is_number(string):

@@ -5,12 +5,7 @@ from kivy.properties import NumericProperty, BoundedNumericProperty, BooleanProp
 from kivy.clock import Clock
 import numpy as np
 
-from .audiometadata import AudioMetadata
-from .audiodecoder import AudioDecoder
-from .buffering import DecoderBuffer
-from .looper import Looper
-from .timestretcher import TimeStretcher
-from .audiooutput import AudioOutput
+from .audio import AudioMetadata, AudioDecoder, DecoderBuffer, Looper, TimeStretcher, AudioOutput
 from .ituneslibrary import ITunesLibrary
 
 

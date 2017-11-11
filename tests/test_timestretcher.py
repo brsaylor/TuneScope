@@ -4,7 +4,7 @@ import math
 import pytest
 import numpy as np
 
-from tunescope.timestretcher import TimeStretcher
+from tunescope.audio import TimeStretcher
 from test_doubles import FakeAudioSource
 
 

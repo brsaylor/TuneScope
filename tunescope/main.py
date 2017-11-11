@@ -14,8 +14,7 @@ from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
 
 from tunescope.player import Player
-from tunescope.audiodecoder import AudioDecoder
-from tunescope.buffering import DecoderBuffer
+from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.analysis import Analyzer
 from tunescope.util import bind_properties
 

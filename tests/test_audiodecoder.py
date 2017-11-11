@@ -4,7 +4,7 @@ import wave
 import pytest
 import numpy as np
 
-from tunescope.audiodecoder import AudioDecoder
+from tunescope.audio import AudioDecoder
 
 # TODO: Test reading audio from video files
 

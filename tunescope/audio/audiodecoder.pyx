@@ -3,7 +3,7 @@ import os.path
 import numpy as np
 cimport numpy as np
 
-from tunescope cimport audiobackend
+from . cimport audiobackend
 
 
 cdef extern from "audiodecoder-gst.c":

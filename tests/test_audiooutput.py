@@ -3,8 +3,8 @@ import os
 import pytest
 import numpy as np
 
-from tunescope import audiooutput
-from tunescope.audiooutput import AudioOutput
+from tunescope.audio import audiooutput
+from tunescope.audio import AudioOutput
 from test_doubles import FakeAudioSource
 
 os.environ['SDL_AUDIODRIVER'] = 'dummy'

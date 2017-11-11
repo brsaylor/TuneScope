@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from tunescope.audioutil cimport pad_block
+from .audioutil cimport pad_block
 
 
 cdef extern from "Python.h":

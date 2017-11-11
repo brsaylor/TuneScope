@@ -47,7 +47,7 @@ enum {NONE, PLAY, PAUSE, CLOSE};
 static void sdl_audio_callback(void *audio_output_handle, Uint8 *stream, int len);
 static int command_executor(void *audio_output_handle);
 static void submit_command(AudioOutputHandle *handle, int command);
-static void close_device_and_free_resources();
+static void close_device_and_free_resources(AudioOutputHandle *handle);
 
 
 // Open an audio device with the given number of channels and samplerate

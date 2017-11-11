@@ -3,7 +3,7 @@ import os.path
 # FIXME: Python 2 code
 from pathlib2 import Path
 
-from tunescope cimport audiobackend
+from . cimport audiobackend
 
 
 cdef extern from "audiometadata-gst.c":

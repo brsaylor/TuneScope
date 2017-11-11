@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from tunescope.audiometadata import AudioMetadata
+from tunescope.audio import AudioMetadata
 
 
 def test_nonexistent_file():

@@ -6,7 +6,7 @@ import threading
 
 import numpy as np
 
-from tunescope.audioutil import pad_block
+from tunescope.audio.audioutil import pad_block
 
 
 class FakeAudioSource(object):

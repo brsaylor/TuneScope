@@ -26,38 +26,38 @@ audiooutput_compiler_args = pkgconfig.parse('sdl2')
 audiooutput_compiler_args['include_dirs'].append(np.get_include())
 
 extensions = [
-    Extension('tunescope.audiobackend',
-              ['tunescope/audiobackend.pyx'],
+    Extension('tunescope.audio.audiobackend',
+              ['tunescope/audio/audiobackend.pyx'],
               **audiobackend_compiler_args),
 
-    Extension('tunescope.audioutil',
-              ['tunescope/audioutil.pyx'],
+    Extension('tunescope.audio.audioutil',
+              ['tunescope/audio/audioutil.pyx'],
               include_dirs=[np.get_include()]),
 
-    Extension('tunescope.audiometadata',
-              ['tunescope/audiometadata.pyx'],
+    Extension('tunescope.audio.audiometadata',
+              ['tunescope/audio/audiometadata.pyx'],
               **audiometadata_compiler_args),
 
-    Extension('tunescope.audiodecoder',
-              ['tunescope/audiodecoder.pyx'],
+    Extension('tunescope.audio.audiodecoder',
+              ['tunescope/audio/audiodecoder.pyx'],
               **audiodecoder_compiler_args),
 
-    Extension('tunescope.buffering',
-              ['tunescope/buffering.pyx'],
+    Extension('tunescope.audio.buffering',
+              ['tunescope/audio/buffering.pyx'],
               include_dirs=[np.get_include()]),
 
-    Extension('tunescope.looper',
-              ['tunescope/looper.pyx'],
+    Extension('tunescope.audio.looper',
+              ['tunescope/audio/looper.pyx'],
               include_dirs=[np.get_include()]),
 
-    Extension('tunescope.timestretcher',
-              ['tunescope/timestretcher.pyx'],
+    Extension('tunescope.audio.timestretcher',
+              ['tunescope/audio/timestretcher.pyx'],
               libraries=['rubberband'],
               include_dirs=[np.get_include(), 'lib/rubberband'],
               library_dirs=['lib/rubberband/lib']),
 
-    Extension('tunescope.audiooutput',
-              ['tunescope/audiooutput.pyx'],
+    Extension('tunescope.audio.audiooutput',
+              ['tunescope/audio/audiooutput.pyx'],
               **audiooutput_compiler_args),
 ]
 

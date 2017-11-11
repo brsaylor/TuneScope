@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from tunescope.buffering import StreamBuffer, DecoderBuffer
+from tunescope.audio.buffering import StreamBuffer, DecoderBuffer
 from test_doubles import FakeAudioDecoder
 
 

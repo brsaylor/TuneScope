@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from tunescope.looper import Looper
+from tunescope.audio import Looper
 from test_doubles import FakeAudioSource
 
 
