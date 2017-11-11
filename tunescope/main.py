@@ -95,7 +95,7 @@ class MainWindow(Widget):
         self.ids.pitch_plot.clear()
         self.loading = True
         self.loading_progress = 0
-        self.ids.loading_progress_label.opacity = 1
+        self.ids.loading_progress_indicator.opacity = 1
 
         # FIXME: Refactor
         decoder = AudioDecoder(filename)
@@ -106,7 +106,7 @@ class MainWindow(Widget):
         yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
         self.loading = False
         fadeout = Animation(opacity=0, duration=1)
-        fadeout.start(self.ids.loading_progress_label)
+        fadeout.start(self.ids.loading_progress_indicator)
 
     def _update_loading_progress(self, progress):
         self.loading_progress = int(round(progress * 100))

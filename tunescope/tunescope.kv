@@ -6,6 +6,7 @@
 #:import IconButton tunescope.widgets.IconButton
 #:import SelectionMarker tunescope.widgets.SelectionMarker
 
+
 <MainWindow>:
 
     BoxLayout:
@@ -96,23 +97,10 @@
                 anchor_x: 'center'
                 anchor_y: 'center'
 
-                Label:
-                    id: loading_progress_label
-                    text: " {:d}%".format(root.loading_progress)
-                    font_size: '24dp'
-                    size_hint: None, None
-                    size: dp(100), dp(50)
-                    color: 0, 0, 0, 0.7
-                    halign: 'center'
-                    valign: 'middle'
+                LoadingProgressIndicator:
+                    id: loading_progress_indicator
+                    percentage: root.loading_progress
 
-                    canvas.before:
-                        Color:
-                            rgba: 1, 1, 1, 0.7
-                        RoundedRectangle:
-                            pos: self.pos
-                            size: self.size
-                            radius: [dp(16)]
 
         # Player toolbar
         Toolbar:
@@ -200,6 +188,7 @@
             Label:
                 text: "{:0.2f}".format(app.player.speed)
                 size_hint_x: None
+
 
         # Pitch controls
         Toolbar:
@@ -341,3 +330,23 @@
                 x: 1 + (root.width if root.is_end_marker else 0)
         canvas.after:
             PopMatrix
+
+
+<LoadingProgressIndicator@Label>:
+    percentage: 0
+    text: " {:d}%".format(self.percentage)
+    font_size: '24dp'
+    size_hint: None, None
+    size: dp(100), dp(50)
+    color: 1, 1, 1, 1
+    opacity: 0
+    halign: 'center'
+    valign: 'middle'
+
+    canvas.before:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(16)]
