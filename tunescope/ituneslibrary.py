@@ -1,12 +1,9 @@
 import os.path
 import plistlib
 from urllib import url2pathname
-'''
-needs to fetch a song by filepath.
-use libpytunes Song()?
 
-'''
 _DEFAULT_LIBRARY_FILEPATH_MACOS = '~/Music/iTunes/iTunes Music Library.xml'
+
 
 class ITunesLibrary(object):
     def __init__(self, filepath=None):

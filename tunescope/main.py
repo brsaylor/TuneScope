@@ -1,6 +1,8 @@
 from __future__ import division
 import sys
 import os.path
+import platform
+import datetime
 
 from kivy.app import App
 from kivy.core.window import Window
@@ -17,9 +19,15 @@ from tunescope.player import Player
 from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.analysis import Analyzer
 from tunescope.util import bind_properties
+from tunescope.filehistory import FileHistory
 
 
 _async_engine = KivyEngine()
+
+if platform.system() == 'Darwin':
+    _DATA_DIR = os.path.expanduser('~/Library/Application Support/TuneScope/')
+else:
+    _DATA_DIR = os.path.expanduser('~/.local/share/TuneScope')
 
 
 class MainWindow(Widget):
@@ -35,6 +43,9 @@ class MainWindow(Widget):
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
         self._bind_selection_marker('selection_start')
         self._bind_selection_marker('selection_end')
+
+        db_path = os.path.join(_DATA_DIR, 'file_history.sqlite3')
+        self._file_history = FileHistory(db_path)
 
     def _bind_selection_marker(self, property_name):
         """ Connect the selection marker with the corresponding selection bound property """
@@ -82,6 +93,8 @@ class MainWindow(Widget):
 
     @_async_engine.async
     def open_file(self, filename):
+        if self.player.file_path is not None:
+            self._save_state()
         filename = os.path.abspath(filename)
 
         try:
@@ -91,6 +104,10 @@ class MainWindow(Widget):
             popup.message = e.message
             popup.open()
             return
+
+        self._load_state()
+        self._file_opened_time = datetime.datetime.now()
+        self._save_state()
 
         self.ids.pitch_plot.clear()
         self.loading = True
@@ -107,6 +124,26 @@ class MainWindow(Widget):
         self.loading = False
         fadeout = Animation(opacity=0, duration=1)
         fadeout.start(self.ids.loading_progress_indicator)
+
+    def _load_state(self):
+        record = self._file_history.get(self.player.file_path)
+        try:
+            self.player.state = record['state']['player']
+        except (KeyError, TypeError):
+            self.player.state = {}
+
+    def _save_state(self):
+        state = dict(
+            player=self.player.state,
+        )
+        self._file_history.update(
+            file_path=self.player.file_path,
+            last_opened=self._file_opened_time,
+            title=self.player.title,
+            artist=self.player.artist,
+            album=self.player.album,
+            state=state,
+        )
 
     def _update_loading_progress(self, progress):
         self.loading_progress = int(round(progress * 100))
@@ -127,9 +164,9 @@ class MainWindow(Widget):
         self.player.load_metadata()
 
     def on_request_close(self, window):
+        self._save_state()
         self.player.close_audio_device()
         return False  # False means go ahead and close the window
-
 
 
 class TuneScopeApp(App):
@@ -151,6 +188,8 @@ class TuneScopeApp(App):
 
 
 if __name__ == '__main__':
+    if not os.path.isdir(_DATA_DIR):
+        os.makedirs(_DATA_DIR)
     tunescope_app = TuneScopeApp()
     if len(sys.argv) > 1:
         filename = sys.argv[1]

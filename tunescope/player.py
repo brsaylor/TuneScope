@@ -12,6 +12,15 @@ from .ituneslibrary import ITunesLibrary
 _FRAMERATE = 60.0
 _POSITION_INTERPOLATION_THRESHOLD = 0.2
 _POSITION_CORRECTION_FRAMES = 60.0
+_DEFAULT_STATE = {
+    'position': 0.0,
+    'speed': 1.0,
+    'transpose': 0,
+    'tuning': 0,
+    'looping_enabled': False,
+    'selection_start': 0.0,
+    'selection_end': 0.0,
+}
 
 
 class Player(EventDispatcher):
@@ -189,6 +198,21 @@ class Player(EventDispatcher):
         """ Close the audio device. Must be called before the application exits """
         if self._audio_output is not None:
             self._audio_output.close()
+
+    @property
+    def file_path(self):
+        return self._filepath
+
+    @property
+    def state(self):
+        """ Returns a dictionary of class properties related to the player state."""
+        return {prop_name: getattr(self, prop_name) for prop_name in _DEFAULT_STATE.keys()}
+
+    @state.setter
+    def state(self, values):
+        """ Populates the class state properties. """
+        for prop_name, default in _DEFAULT_STATE.iteritems():
+            setattr(self, prop_name, values.get(prop_name, default))
 
     def _sync_position(self, dt):
         """ Update the `position` property from the pipeline position, using interpolation

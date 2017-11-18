@@ -22,7 +22,11 @@
             Button:
                 text: "Open"
                 on_press: root.show_open_dialog()
-                
+
+            Button:
+                text: "Print State"
+                on_press: print(app.player.state)
+
 
         # Media info bar
         Toolbar:
@@ -304,14 +308,14 @@
 <SelectionMarker>:
     size_hint_x: None
     width: '24dp'
-    
+
     canvas:
         Color:
-            rgba: 1, 1, 1, 1 
+            rgba: 1, 1, 1, 1
         Line:
             points: root.x, 0, root.x, self.height
             width: dp(1)
-    
+
     Image:
         id: triangle
         x: root.x - (root.width if root.is_end_marker else 0)
