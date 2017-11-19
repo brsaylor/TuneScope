@@ -89,6 +89,8 @@
                     PitchPlot:
                         id: pitch_plot
                         size_hint: None, None
+                        width: app.player.duration * dp(120) * horizontal_zoom.value
+                        height: scroll_view.height * vertical_zoom.value
 
             SelectionMarker:
                 id: selection_start_marker
@@ -129,17 +131,15 @@
             LargeIconButton:
                 icon: 'zoom-horizontal'
             Slider:
-                value: pitch_plot.xscale
-                on_value: pitch_plot.xscale = self.value
+                id: horizontal_zoom
                 range: 1, 20
 
             VerticalSeparator:
             LargeIconButton:
                 icon: 'zoom-vertical'
             Slider:
-                value: pitch_plot.yscale
-                on_value: pitch_plot.yscale = self.value
-                range: 1, 20
+                id: vertical_zoom
+                range: 1, 10
 
 
         # Selection toolbar
