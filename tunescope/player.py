@@ -110,8 +110,9 @@ class Player(EventDispatcher):
 
     def on_playing(self, instance, value):
         """ Play or pause playback. Called when `playing` property changes """
-        if self._audio_output is None:
-            return
+        if self._audio_output is None or self.position >= self.duration:
+            self.playing = False
+            return True
         if value:
             self._audio_output.play()
             self._enable_position_sync()
@@ -235,7 +236,7 @@ class Player(EventDispatcher):
                 new_position += self._position_correction_increment
                 self._position_error -= self._position_correction_increment
         self._previous_pipeline_position = pipeline_position
-        self.position = new_position
+        self.position = min(new_position, self.duration)
 
     def _enable_position_sync(self):
         """ Enable periodic updates of the `position` property from the audio pipeline """
