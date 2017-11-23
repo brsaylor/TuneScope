@@ -88,6 +88,7 @@ class MainWindow(Widget):
             multiple=False,
             preview=True,
             title="Open media file")
+        Window.raise_window()
         if selected_files is not None:
             self.open_file(selected_files[0])
 
