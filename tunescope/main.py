@@ -9,6 +9,7 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, BooleanProperty
 from kivy.uix.widget import Widget
+from kivy.uix.dropdown import DropDown
 from kivy.factory import Factory
 from kivy.animation import Animation
 import plyer
@@ -125,6 +126,26 @@ class MainWindow(Widget):
         self.loading = False
         fadeout = Animation(opacity=0, duration=1)
         fadeout.start(self.ids.loading_progress_indicator)
+
+    def show_recent_files_menu(self):
+        dropdown = DropDown()
+        records = self._file_history.recent(10)
+        for record in records:
+            btn = Factory.RecentFileItem()
+            btn.title = record['title']
+            btn.artist = record['artist']
+            btn.album = record['album']
+            btn.file_path = record['file_path']
+            btn.bind(on_press=lambda btn: dropdown.select(btn.file_path))
+            dropdown.add_widget(btn)
+        mainbutton = self.ids.recent_files_button
+        mainbutton.bind(on_release=dropdown.open)
+
+        def on_select(instance, file_path):
+            mainbutton.unbind(on_release=dropdown.open)
+            Clock.schedule_once(lambda dt: self.open_file(file_path), 0)
+
+        dropdown.bind(on_select=on_select)
 
     def _load_state(self):
         record = self._file_history.get(self.player.file_path)
