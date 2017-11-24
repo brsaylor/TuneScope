@@ -24,8 +24,9 @@
                 on_press: root.show_open_dialog()
 
             Button:
-                text: "Print State"
-                on_press: print(app.player.state)
+                id: recent_files_button
+                text: "Recent Files"
+                on_press: root.show_recent_files_menu()
 
 
         # Media info bar
@@ -354,3 +355,12 @@
             pos: self.pos
             size: self.size
             radius: [dp(16)]
+
+
+<RecentFileItem@Button>:
+    title: ""
+    artist: ""
+    album: ""
+    text: "{}, {}, {}".format(self.title, self.artist, self.album)
+    size_hint_y: None
+    height: 50
