@@ -21,6 +21,7 @@ from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.analysis import Analyzer
 from tunescope.util import bind_properties
 from tunescope.filehistory import FileHistory
+from tunescope.theme import Theme
 
 
 _async_engine = KivyEngine()
@@ -197,9 +198,11 @@ class TuneScopeApp(App):
     def __init__(self, **kwargs):
         super(TuneScopeApp, self).__init__(**kwargs)
         self.player = None
+        self.theme = None
 
     def build(self):
         self.player = Player()
+        self.theme = Theme()
         return MainWindow()
 
     @staticmethod

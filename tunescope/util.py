@@ -1,3 +1,5 @@
+import os.path
+
 def bind_properties(properties, callback):
     """ Bind multiple properties to a callback.
 
@@ -18,3 +20,6 @@ def bind_properties(properties, callback):
         dispatcher, prop_names = p[0], p[1:]
         for prop_name in prop_names:
             dispatcher.bind(**{prop_name: bound_callback})
+
+def get_data_dir():
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')

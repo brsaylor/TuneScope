@@ -4,13 +4,15 @@ import math
 
 import numpy as np
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty, ListProperty
 from kivy.graphics import Color, Scale, Line
 from kivy.clock import Clock
 
 
 class PitchPlot(RelativeLayout):
     """ A plot of MIDI pitch over time """
+
+    line_color = ListProperty([0, 0, 0, 1])
 
     def __init__(self, **kwargs):
         super(PitchPlot, self).__init__(**kwargs)
@@ -48,7 +50,7 @@ class PitchPlot(RelativeLayout):
         self.canvas.clear()
         with self.canvas:
             self._scale_matrix = Scale(1, 1, 1)
-            Color(1, 0.5, 1)
+            Color(*self.line_color)
             Line(points=self._points, width=1)
         self._update_scale_matrix()
 
