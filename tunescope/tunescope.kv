@@ -18,13 +18,13 @@
 
         # Main toolbar
         Toolbar:
-            background_color: 0.5, 0.5, 0.5, 0.3
+            alt_color: True
 
             Button:
                 size_hint_x: None
                 width: '100dp'
                 text: "Open"
-                on_press: root.show_open_dialog()
+                on_release: root.show_open_dialog()
 
             Button:
                 id: recent_files_button
@@ -38,7 +38,6 @@
         Toolbar:
             orientation: 'vertical'
             height: self.minimum_height
-            background_color: 0.5, 0.5, 0.5, 0.5
 
             Label:
                 text: app.player.title
@@ -77,6 +76,13 @@
                 on_scroll_move: app.player.position = self.scroll_x * app.player.duration
                 on_scroll_stop: app.player.on_slider_seek_end()
 
+                canvas.before:
+                    Color:
+                        rgba: app.theme.pitch_plot_background_color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
                 canvas.after:
 
                     # Center line
@@ -94,6 +100,7 @@
                     size_hint: None, None
                     PitchPlot:
                         id: pitch_plot
+                        line_color: app.theme.pitch_plot_line_color
                         size_hint: None, None
                         width: app.player.duration * dp(120) * horizontal_zoom.value
                         height: scroll_view.height * vertical_zoom.value
@@ -116,8 +123,6 @@
 
         # Player toolbar
         Toolbar:
-            background_color: 0.5, 0.5, 0.5, 0.5
-
             LargeIconButton:
                 icon: 'pause' if app.player.playing else 'play'
                 on_press: app.player.playing = not app.player.playing
@@ -150,7 +155,7 @@
 
         # Selection toolbar
         Toolbar:
-            background_color: 0.5, 0.5, 0.5, 0.3
+            alt_color: True
 
             LargeIconButton:
                 icon: 'looping-enabled' if app.player.looping_enabled else 'looping-disabled'
@@ -233,17 +238,16 @@
 
 
 <Toolbar@BoxLayout>:
+    alt_color: False
     orientation: 'horizontal'
     size_hint_y: None
     height: '48dp'
     padding: '8dp', '8dp'
     spacing: '8dp'
 
-    background_color: 0.5, 0.5, 0.5, 0.5
-
     canvas.before:
         Color:
-            rgba: self.background_color
+            rgba: app.theme.background_alt_color if root.alt_color else app.theme.background_color
         Rectangle:
             pos: self.pos
             size: self.size
@@ -257,6 +261,10 @@
             rgba: 1, 1, 1, 0.5
         Line:
             points: self.x, self.y, self.x, self.y + self.height
+
+
+<IconButton>:
+    color: app.theme.icon_color
 
 
 <LargeIconButton@IconButton>:
@@ -342,20 +350,36 @@
             PopMatrix
 
 
+<Label>:
+    color: app.theme.text_color
+
+
+<Button>:
+    background_normal: 'data/widget-images/png/button.png'
+    background_down: 'data/widget-images/png/button_pressed.png'
+    color: app.theme.button_text_color
+    background_color: app.theme.button_background_color
+
+
+<Slider>:
+    cursor_image: 'data/widget-images/png/slider_cursor.png'
+    cursor_size: dp(24), dp(24)
+
+
 <LoadingProgressIndicator@Label>:
     percentage: 0
     text: " {:d}%".format(self.percentage)
     font_size: '24dp'
     size_hint: None, None
     size: dp(100), dp(50)
-    color: 1, 1, 1, 1
+    color: app.theme.progress_text_color
     opacity: 0
     halign: 'center'
     valign: 'middle'
 
     canvas.before:
         Color:
-            rgba: 0.5, 0.5, 0.5, 1
+            rgba: app.theme.progress_background_color
         RoundedRectangle:
             pos: self.pos
             size: self.size
