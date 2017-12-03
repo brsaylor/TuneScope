@@ -9,7 +9,6 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, BooleanProperty
 from kivy.uix.widget import Widget
-from kivy.uix.dropdown import DropDown
 from kivy.factory import Factory
 from kivy.animation import Animation
 import plyer
@@ -128,7 +127,7 @@ class MainWindow(Widget):
         fadeout.start(self.ids.loading_progress_indicator)
 
     def show_recent_files_menu(self):
-        dropdown = DropDown()
+        dropdown = Factory.RecentFilesDropDown()
         records = self._file_history.recent(10)
         for record in records:
             btn = Factory.RecentFileItem()

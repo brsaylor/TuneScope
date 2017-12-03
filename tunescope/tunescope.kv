@@ -1,5 +1,6 @@
 #:import ScrollEffect kivy.effects.scroll.ScrollEffect
 #:import Factory kivy.factory.Factory
+#:import Window kivy.core.window.Window
 
 #:import Player tunescope.player.Player
 #:import PitchPlot tunescope.visualization.PitchPlot
@@ -20,11 +21,15 @@
             background_color: 0.5, 0.5, 0.5, 0.3
 
             Button:
+                size_hint_x: None
+                width: '100dp'
                 text: "Open"
                 on_press: root.show_open_dialog()
 
             Button:
                 id: recent_files_button
+                size_hint_x: None
+                width: '100dp'
                 text: "Recent Files"
                 on_press: root.show_recent_files_menu()
 
@@ -357,10 +362,20 @@
             radius: [dp(16)]
 
 
+<RecentFilesDropDown@DropDown>:
+    auto_width: False
+    width: Window.width - self.x - dp(8)
+
+
 <RecentFileItem@Button>:
+    size_hint_y: None
+    height: dp(35)
+    padding: dp(8), dp(0)
+    halign: 'left'
+    valign: 'middle'
+    markup: True
+    text_size: self.size
     title: ""
     artist: ""
     album: ""
-    text: "{}, {}, {}".format(self.title, self.artist, self.album)
-    size_hint_y: None
-    height: 50
+    text: "{} - [i]{}, {}[/i]".format(self.title, self.artist, self.album)
