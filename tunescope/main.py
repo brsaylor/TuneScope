@@ -186,7 +186,8 @@ class MainWindow(Widget):
         self.player.load_metadata()
 
     def on_request_close(self, window):
-        self._save_state()
+        if self.player.file_path is not None:
+            self._save_state()
         self.player.close_audio_device()
         return False  # False means go ahead and close the window
 
