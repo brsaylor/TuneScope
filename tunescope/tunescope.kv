@@ -345,28 +345,28 @@
             PopMatrix
 
 
+<Label>:
+    color: app.theme.text_color
+
+
 <LoadingProgressIndicator@Label>:
     percentage: 0
     text: " {:d}%".format(self.percentage)
     font_size: '24dp'
     size_hint: None, None
     size: dp(100), dp(50)
-    color: 1, 1, 1, 1
+    color: app.theme.progress_text_color
     opacity: 0
     halign: 'center'
     valign: 'middle'
 
     canvas.before:
         Color:
-            rgba: 0.5, 0.5, 0.5, 1
+            rgba: app.theme.progress_background_color
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [dp(16)]
-
-
-<Label>:
-    color: app.theme.text_color
 
 
 <Button>:

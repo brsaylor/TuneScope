@@ -21,10 +21,12 @@ class Theme(EventDispatcher):
     icon_color                  = ListProperty([1, 1, 1, 1])
     pitch_plot_background_color = ListProperty([0, 0, 0, 1])
     pitch_plot_line_color       = ListProperty([1, 1, 1, 1])
+    progress_background_color   = ListProperty([0, 0, 0, 1])
+    progress_text_color         = ListProperty([1, 1, 1, 1])
 
     def __init__(self, **kwargs):
         super(EventDispatcher, self).__init__(**kwargs)
-        self.load_theme(os.path.join(theme_dir, 'solarized-light.json'))
+        self.load_theme(os.path.join(theme_dir, 'solarized-dark.json'))
 
     def load_theme(self, file_path):
         with open(file_path) as f:
