@@ -21,7 +21,7 @@
 
             Button:
                 text: "Open"
-                on_press: root.show_open_dialog()
+                on_release: root.show_open_dialog()
 
             Button:
                 id: recent_files_button
@@ -370,9 +370,15 @@
 
 
 <Button>:
-    background_normal: ''
+    background_normal: 'data/widget-images/png/button.png'
+    background_down: 'data/widget-images/png/button_pressed.png'
     color: app.theme.button_text_color
     background_color: app.theme.button_background_color
+
+
+<Slider>:
+    cursor_image: 'data/widget-images/png/slider_cursor.png'
+    cursor_size: dp(24), dp(24)
 
 
 <RecentFileItem@Button>:
