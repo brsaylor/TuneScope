@@ -130,12 +130,13 @@ class MainWindow(Widget):
     def show_recent_files_menu(self):
         dropdown = Factory.RecentFilesDropDown()
         records = self._file_history.recent(10)
-        for record in records:
+        for i, record in enumerate(records):
             btn = Factory.RecentFileItem()
             btn.title = record['title']
             btn.artist = record['artist']
             btn.album = record['album']
             btn.file_path = record['file_path']
+            btn.last = i == len(records) - 1
             btn.bind(on_press=lambda btn: dropdown.select(btn.file_path))
             dropdown.add_widget(btn)
         mainbutton = self.ids.recent_files_button

@@ -22,14 +22,14 @@
 
             Button:
                 size_hint_x: None
-                width: '100dp'
+                width: dp(100)
                 text: "Open"
                 on_release: root.show_open_dialog()
 
             Button:
                 id: recent_files_button
                 size_hint_x: None
-                width: '100dp'
+                width: dp(100)
                 text: "Recent Files"
                 on_press: root.show_recent_files_menu()
 
@@ -62,11 +62,12 @@
             ScrollView:
                 id: scroll_view
                 scroll_type: ['bars', 'content']
-                bar_width: '8dp'
+                bar_width: dp(8)
                 bar_color: 0.7, 0.7, 0.7, 0.9
                 bar_inactive_color: 0.7, 0.7, 0.7, 0.6
 
                 scroll_x: (app.player.position / app.player.duration) if app.player.duration > 0 else 0
+                scroll_y: 0.5
 
                 # Disable scrolling intertia
                 effect_x: ScrollEffect(friction=1)
@@ -95,15 +96,16 @@
                 # right ends of the plot to align with the center line
                 AnchorLayout:
                     anchor_x: 'center'
+                    anchor_y: 'center'
                     width: scroll_view.width + pitch_plot.width
-                    height: pitch_plot.height
+                    height: pitch_plot.height + dp(10)
                     size_hint: None, None
                     PitchPlot:
                         id: pitch_plot
                         line_color: app.theme.pitch_plot_line_color
                         size_hint: None, None
                         width: app.player.duration * dp(120) * horizontal_zoom.value
-                        height: scroll_view.height * vertical_zoom.value
+                        height: scroll_view.height * vertical_zoom.value - dp(10)
 
             SelectionMarker:
                 id: selection_start_marker
@@ -136,7 +138,7 @@
             # Spacer
             Widget:
                 size_hint_x: None
-                width: '40dp'
+                width: dp(40)
 
             VerticalSeparator:
             LargeIconButton:
@@ -163,29 +165,31 @@
                 on_press: app.player.looping_enabled = not app.player.looping_enabled
 
             Button:
-                text: "Start"
+                text: u"| \u25b6"
+                font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: '100dp'
+                width: self.texture_size[0] + dp(10)
                 on_press: app.player.selection_start = app.player.position
             Button:
                 text: app.format_time(app.player.selection_start)
                 font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: '100dp'
+                width: dp(100)
                 on_press: app.player.seek(app.player.selection_start)
 
             VerticalSeparator:
 
             Button:
-                text: "End"
+                text: u"\u25c0 |"
+                font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: '100dp'
+                width: self.texture_size[0] + dp(10)
                 on_press: app.player.selection_end = app.player.position
             Button:
                 text: app.format_time(app.player.selection_end)
                 font_name: 'DejaVuSans'
                 size_hint_x: None
-                width: '100dp'
+                width: dp(100)
                 on_press: app.player.seek(app.player.selection_end)
 
 
@@ -217,7 +221,7 @@
             Label:
                 text: '{:+d}'.format(app.player.transpose)
                 size_hint_x: None
-                width: '32dp'
+                width: dp(32)
             SmallIconButton:
                 icon: 'plus'
                 on_press: app.player.increment_transpose(1)
@@ -241,9 +245,9 @@
     alt_color: False
     orientation: 'horizontal'
     size_hint_y: None
-    height: '48dp'
-    padding: '8dp', '8dp'
-    spacing: '8dp'
+    height: dp(48)
+    padding: dp(8), dp(8)
+    spacing: dp(8)
 
     canvas.before:
         Color:
@@ -255,7 +259,7 @@
 
 <VerticalSeparator@Widget>:
     size_hint_x: None
-    width: '1dp'
+    width: dp(1)
     canvas:
         Color:
             rgba: 1, 1, 1, 0.5
@@ -269,12 +273,12 @@
 
 <LargeIconButton@IconButton>:
     size_hint_x: None
-    size: '40dp', '40dp'
+    size: dp(40), dp(40)
 
 
 <SmallIconButton@IconButton>:
     size_hint_x: None
-    size: '32dp', '32dp'
+    size: dp(32), dp(32)
 
 
 <ITunesConfirmationPopup@Popup>:
@@ -305,7 +309,7 @@
 
 <ErrorDialog@Popup>:
     size_hint: None, None
-    size: '400dp', '300dp'
+    size: dp(400), dp(300)
     auto_dismiss: False
     message: "Unknown error"
     BoxLayout:
@@ -315,13 +319,13 @@
         Button:
             text: 'OK'
             size_hint_y: None
-            height: '40dp'
+            height: dp(40)
             on_release: root.dismiss()
 
 
 <SelectionMarker>:
     size_hint_x: None
-    width: '24dp'
+    width: dp(24)
 
     canvas:
         Color:
@@ -335,7 +339,7 @@
         x: root.x - (root.width if root.is_end_marker else 0)
         opacity: 0.5
         width: root.width
-        height: '48dp'
+        height: dp(48)
         source: 'data/icons/png/selection-marker.png'
         mipmap: True
 
@@ -369,7 +373,7 @@
 <LoadingProgressIndicator@Label>:
     percentage: 0
     text: " {:d}%".format(self.percentage)
-    font_size: '24dp'
+    font_size: dp(24)
     size_hint: None, None
     size: dp(100), dp(50)
     color: app.theme.progress_text_color
@@ -392,6 +396,8 @@
 
 
 <RecentFileItem@Button>:
+    background_normal: ''
+    background_down: ''
     size_hint_y: None
     height: dp(35)
     padding: dp(8), dp(0)
@@ -403,3 +409,12 @@
     artist: ""
     album: ""
     text: "{} - [i]{}, {}[/i]".format(self.title, self.artist, self.album)
+    last: False
+
+
+    canvas.after:
+        Color:
+            rgba: 1,1,1,0 if self.last else 0.25
+        Line:
+            points: self.x + dp(8), self.y, self.x + self.width - dp(8), self.y
+            width: dp(1)
