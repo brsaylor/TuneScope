@@ -410,11 +410,16 @@
     album: ""
     text: "{} - [i]{}, {}[/i]".format(self.title, self.artist, self.album)
     last: False
-
+    hover: False
 
     canvas.after:
         Color:
-            rgba: 1,1,1,0 if self.last else 0.25
+            rgba: 1, 1, 1, 0 if self.last else 0.25
         Line:
             points: self.x + dp(8), self.y, self.x + self.width - dp(8), self.y
             width: dp(1)
+        Color:
+            rgba: 1, 1, 1, 0.25 if self.hover else 0
+        Rectangle:
+            size: self.size
+            pos: self.pos

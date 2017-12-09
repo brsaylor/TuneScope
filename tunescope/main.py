@@ -130,6 +130,7 @@ class MainWindow(Widget):
     def show_recent_files_menu(self):
         dropdown = Factory.RecentFilesDropDown()
         records = self._file_history.recent(10)
+
         for i, record in enumerate(records):
             btn = Factory.RecentFileItem()
             btn.title = record['title']
@@ -139,11 +140,17 @@ class MainWindow(Widget):
             btn.last = i == len(records) - 1
             btn.bind(on_press=lambda btn: dropdown.select(btn.file_path))
             dropdown.add_widget(btn)
+
+            def on_mouse_pos(window, pos, btn=btn):
+                btn.hover = btn.collide_point(*btn.to_widget(*pos))
+            Window.bind(mouse_pos=on_mouse_pos) # FIXME: unbind on dismiss?
+
         mainbutton = self.ids.recent_files_button
         mainbutton.bind(on_release=dropdown.open)
 
         def on_select(instance, file_path):
             mainbutton.unbind(on_release=dropdown.open)
+            dropdown.dismiss()
             Clock.schedule_once(lambda dt: self.open_file(file_path), 0)
 
         dropdown.bind(on_select=on_select)
