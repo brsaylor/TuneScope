@@ -3,6 +3,7 @@ import sys
 import os.path
 import platform
 import datetime
+import math
 
 from kivy.app import App
 from kivy.core.window import Window
@@ -17,7 +18,7 @@ from async_gui.toolkits.kivy import KivyEngine
 
 from tunescope.player import Player
 from tunescope.audio import AudioDecoder, DecoderBuffer
-from tunescope.analysis import Analyzer
+from tunescope.analysis import analyze
 from tunescope.util import bind_properties
 from tunescope.filehistory import FileHistory
 from tunescope.theme import Theme
@@ -34,7 +35,6 @@ else:
 class MainWindow(Widget):
     """ Main application window """
 
-    loading = BooleanProperty(False)
     loading_progress = NumericProperty(0)
 
     def __init__(self, **kwargs):
@@ -111,19 +111,26 @@ class MainWindow(Widget):
         self._file_opened_time = datetime.datetime.now()
         self._save_state()
 
-        self.ids.pitch_plot.clear()
-        self.loading = True
+        yield Task(self._analyze_file)
+
+    def _analyze_file(self):
         self.loading_progress = 0
         self.ids.loading_progress_indicator.opacity = 1
 
-        # FIXME: Refactor
-        decoder = AudioDecoder(filename)
-        buf = DecoderBuffer(decoder, 4096)
-        analyzer = Analyzer(buf, self.player.duration,
-                            on_progress=self._update_loading_progress)
-        yield Task(analyzer.analyze)
-        yield Task(self.ids.pitch_plot.plot, analyzer.pitch)
-        self.loading = False
+        audio_source = DecoderBuffer(AudioDecoder(self.player.file_path), 4096)
+        hop_size = 512
+        duration_frames = int(math.ceil(self.player.duration * audio_source.samplerate))
+        data_length = int(math.ceil(duration_frames / hop_size))
+        self.ids.pitch_plot.prepare(data_length)
+
+        self.__hops_analyzed = 0
+        def on_progress():
+            self.__hops_analyzed += 1
+            self.loading_progress = int(round(self.__hops_analyzed / data_length * 100))
+
+        for page in analyze(audio_source, hop_size=hop_size, on_progress=on_progress):
+            self.ids.pitch_plot.add_data(page['pitch'])
+
         fadeout = Animation(opacity=0, duration=1)
         fadeout.start(self.ids.loading_progress_indicator)
 
@@ -174,9 +181,6 @@ class MainWindow(Widget):
             album=self.player.album,
             state=state,
         )
-
-    def _update_loading_progress(self, progress):
-        self.loading_progress = int(round(progress * 100))
 
     def on_dropfile(self, window, filename):
         self.open_file(filename)

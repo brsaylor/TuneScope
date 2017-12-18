@@ -5,12 +5,13 @@ import numpy as np
 import aubio
 
 
-WINDOW_SIZE = 2048  # aubio window size
-HOP_SIZE = 512      # aubio hop size (this is the time resolution of the analyses)
-
-
-class Analyzer(object):
-    """ Performs sound/musical analysis on an audio file.
+def analyze(
+        audio_source,
+        window_size=2048,
+        hop_size=512,
+        page_size=1024,
+        on_progress=None):
+    """ Analyze the audio, producing data for plots.
 
     Parameters
     ----------
@@ -18,39 +19,39 @@ class Analyzer(object):
         An object with properties `channels` and `samplerate`
         and methods `is_eos()` and `read(sample_count)`,
         which returns a NumPy float32 array of length `sample_count`.
-    duration : float
-        Duration of input in seconds
+    window_size : int
+        FFT window size
+    hop_size: int
+        Input data is analyzed in overlapping windows spaced `hop_size` audio
+        frames apart. Each hop produces one data point.
+    page_size: int
+        Number of data points (hops) per page yielded
     on_progress : function
-        Called periodically to report progress with an argument between 0 and 1
+        Called on each hop to report progress
 
-    Attributes
-    ----------
-    pitch : ndarray
-        Pitches as (possibly non-integer) MIDI note numbers.
-        Will be None until analyze() is called.
+    Yields
+    ------
+    dict
+    A dictionary with the current page of data:
+        {
+            'pitch': np.ndarray, dtype=np.float32, length=page_size - MIDI pitch value
+        }
     """
-
-    def __init__(self, audio_source, duration, on_progress=None):
-        self._audio_source = audio_source
-        self._duration = duration
-        self.pitch = None
-        self.on_progress = on_progress
-
-    def analyze(self):
-        """ Perform the analysis """
-
-        pitch_detector = aubio.pitch('yinfft', WINDOW_SIZE, HOP_SIZE, self._audio_source.samplerate)
-        pitch_detector.set_unit('midi')
-
-        duration_frames = int(math.ceil(self._duration * self._audio_source.samplerate))
-        duration_hops = int(math.ceil(duration_frames / HOP_SIZE))
-
-        # Each row contains (time, pitch)
-        self.pitch = np.zeros(duration_hops, dtype=np.float32)
-
-        for hop in range(duration_hops):
-            frames = self._audio_source.read(HOP_SIZE * self._audio_source.channels).reshape((-1, self._audio_source.channels))
-            frames_mono = frames.mean(axis=1)
-            self.pitch[hop] = pitch_detector(frames_mono)[0]
-            if self.on_progress:
-                self.on_progress(float(hop + 1) / duration_hops)
+    pitch_detector = aubio.pitch('yinfft', window_size, hop_size, audio_source.samplerate)
+    pitch_detector.set_unit('midi')
+    pitch_page = np.zeros(page_size, dtype=np.float32)
+    i = 0
+    while not audio_source.is_eos():
+        frames_mono = (
+            audio_source
+            .read(hop_size * audio_source.channels)
+            .reshape((-1, audio_source.channels))
+            .mean(axis=1))
+        pitch_page[i] = pitch_detector(frames_mono)[0]
+        i += 1
+        if i == page_size:
+            yield {'pitch': pitch_page}
+            i = 0
+        on_progress and on_progress()
+    if i != 0:
+        yield {'pitch': pitch_page[:i]}

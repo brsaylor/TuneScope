@@ -1,60 +1,65 @@
 """ Kivy widgets for audio visualization """
 
 import math
+from functools import partial
 
 import numpy as np
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import NumericProperty, ObjectProperty, ListProperty
 from kivy.graphics import Color, Scale, Line
 from kivy.clock import Clock
+from kivy.metrics import dp
 
 
 class PitchPlot(RelativeLayout):
-    """ A plot of MIDI pitch over time """
+    """ A plot of MIDI pitch over time
+
+    All public methods may be safely called from a non-GUI thread.
+    """
 
     line_color = ListProperty([0, 0, 0, 1])
 
     def __init__(self, **kwargs):
         super(PitchPlot, self).__init__(**kwargs)
-        self._points = None
         self._scale_matrix = None
 
-    def plot(self, pitches):
-        """ Plot the given pitches on the canvas.
+    def prepare(self, data_length):
+        """ Prepare the canvas for a new plot """
+        self._data_length = data_length
+        self._pitches_plotted = 0
+        self._max_pitch = 1
+        Clock.schedule_once(self._prepare_canvas, 0)
 
-        May be safely called from a non-GUI thread.
-
-        Parameters
-        ----------
-        pitches : ndarray
-            Array of MIDI pitch values sampled at regular time intervals
-        """
-        self._num_pitches = len(pitches)
-        self._highest_pitch = pitches.max()
-
-        points = np.empty((len(pitches), 2), dtype=np.float32)
-        points[:, 0] = np.arange(len(pitches), dtype=np.float32)
-        points[:, 1] = pitches
-        self._points = list(points.flatten())
-
-        # Update the drawing instructions on the canvas from the main thread
-        Clock.schedule_once(self._update_canvas, 0)
-
-    def clear(self):
-        self.plot(np.array([1]))
-
-    def on_size(self, *args):
-        self._update_scale_matrix()
-
-    def _update_canvas(self, dt):
+    def _prepare_canvas(self, dt):
         self.canvas.clear()
         with self.canvas:
             self._scale_matrix = Scale(1, 1, 1)
             Color(*self.line_color)
-            Line(points=self._points, width=1)
         self._update_scale_matrix()
 
-    def _update_scale_matrix(self, *args):
+    def add_data(self, pitches):
+        """ Append ndarray `pitches` to the plot """
+        max_pitch = pitches.max()
+        if max_pitch > self._max_pitch:
+            self._max_pitch = max_pitch
+            self._update_scale_matrix()
+        points = np.empty((len(pitches), 2), dtype=np.float32)
+        points[:, 0] = np.arange(
+            self._pitches_plotted,
+            self._pitches_plotted + len(pitches),
+            dtype=np.float32)
+        points[:, 1] = pitches
+        points = list(points.flatten())
+        Clock.schedule_once(partial(self._plot, points), 0)
+        self._pitches_plotted += len(pitches)
+
+    def _plot(self, points, dt):
+        self.canvas.add(Line(points=points, width=dp(1)))
+
+    def on_size(self, *args):
+        self._update_scale_matrix()
+
+    def _update_scale_matrix(self):
         if self._scale_matrix:
-            self._scale_matrix.x = self.width / self._num_pitches
-            self._scale_matrix.y = self.height / self._highest_pitch
+            self._scale_matrix.x = self.width / self._data_length
+            self._scale_matrix.y = self.height / self._max_pitch
