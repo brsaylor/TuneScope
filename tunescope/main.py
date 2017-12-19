@@ -32,6 +32,11 @@ else:
     _DATA_DIR = os.path.expanduser('~/.local/share/TuneScope')
 
 
+# TODO: Enable vsync:
+# https://github.com/missionpinball/mpf-mc/issues/289
+# https://kivy.org/docs/api-kivy.config.html#module-kivy.config
+
+
 class MainWindow(Widget):
     """ Main application window """
 
@@ -121,6 +126,7 @@ class MainWindow(Widget):
         hop_size = 512
         duration_frames = int(math.ceil(self.player.duration * audio_source.samplerate))
         data_length = int(math.ceil(duration_frames / hop_size))
+        self.ids.spectrogram.prepare(data_length)
         self.ids.pitch_plot.prepare(data_length)
 
         self.__hops_analyzed = 0
@@ -130,6 +136,7 @@ class MainWindow(Widget):
 
         for page in analyze(audio_source, hop_size=hop_size, on_progress=on_progress):
             self.ids.pitch_plot.add_data(page['pitch'])
+            self.ids.spectrogram.add_data(page['spectrum'])
 
         fadeout = Animation(opacity=0, duration=1)
         fadeout.start(self.ids.loading_progress_indicator)

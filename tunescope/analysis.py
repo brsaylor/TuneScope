@@ -21,10 +21,10 @@ def analyze(
         which returns a NumPy float32 array of length `sample_count`.
     window_size : int
         FFT window size
-    hop_size: int
+    hop_size : int
         Input data is analyzed in overlapping windows spaced `hop_size` audio
         frames apart. Each hop produces one data point.
-    page_size: int
+    page_size : int
         Number of data points (hops) per page yielded
     on_progress : function
         Called on each hop to report progress
@@ -34,12 +34,21 @@ def analyze(
     dict
     A dictionary with the current page of data:
         {
-            'pitch': np.ndarray, dtype=np.float32, length=page_size - MIDI pitch value
+            'pitch' : np.ndarray(shape=(page_size,), dtype=np.float32)
+                MIDI pitch values
+            'spectrum': np.ndarray(shape=(page_size, window_size / 2 + 1), dtype=np.float32)
+                FFT magnitudes
         }
     """
+
     pitch_detector = aubio.pitch('yinfft', window_size, hop_size, audio_source.samplerate)
     pitch_detector.set_unit('midi')
     pitch_page = np.zeros(page_size, dtype=np.float32)
+
+    spectrum_size = window_size // 2 + 1
+    pvoc = aubio.pvoc(window_size, hop_size)
+    spectrum_page = np.zeros((page_size, spectrum_size), dtype=np.float32)
+
     i = 0
     while not audio_source.is_eos():
         frames_mono = (
@@ -48,10 +57,11 @@ def analyze(
             .reshape((-1, audio_source.channels))
             .mean(axis=1))
         pitch_page[i] = pitch_detector(frames_mono)[0]
+        spectrum_page[i] = pvoc(frames_mono).norm / window_size * 2
         i += 1
         if i == page_size:
-            yield {'pitch': pitch_page}
+            yield {'pitch': pitch_page, 'spectrum': spectrum_page}
             i = 0
         on_progress and on_progress()
     if i != 0:
-        yield {'pitch': pitch_page[:i]}
+        yield {'pitch': pitch_page[:i], 'spectrum': spectrum_page[:i]}

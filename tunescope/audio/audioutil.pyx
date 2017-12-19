@@ -1,5 +1,6 @@
 import numpy as np
 cimport numpy as np
+from libc.math cimport ceil
 
 
 cpdef np.ndarray[np.float32_t] pad_block(

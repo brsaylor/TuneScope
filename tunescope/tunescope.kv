@@ -3,7 +3,8 @@
 #:import Window kivy.core.window.Window
 
 #:import Player tunescope.player.Player
-#:import PitchPlot tunescope.visualization.PitchPlot
+#:import Spectrogram tunescope.visualization.spectrogram.Spectrogram
+#:import PitchPlot tunescope.visualization.pitch_plot.PitchPlot
 #:import IconButton tunescope.widgets.IconButton
 #:import SelectionMarker tunescope.widgets.SelectionMarker
 
@@ -100,6 +101,11 @@
                     width: scroll_view.width + pitch_plot.width
                     height: pitch_plot.height + dp(10)
                     size_hint: None, None
+                    Spectrogram:
+                        id: spectrogram
+                        size_hint: None, None
+                        width: app.player.duration * dp(120) * horizontal_zoom.value
+                        height: scroll_view.height * vertical_zoom.value - dp(10)
                     PitchPlot:
                         id: pitch_plot
                         line_color: app.theme.pitch_plot_line_color

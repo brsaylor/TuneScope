@@ -1,5 +1,3 @@
-""" Kivy widgets for audio visualization """
-
 import math
 from functools import partial
 
