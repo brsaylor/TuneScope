@@ -41,9 +41,9 @@ def analyze(
         }
     """
 
-    pitch_detector = aubio.pitch('yinfft', window_size, hop_size, audio_source.samplerate)
-    pitch_detector.set_unit('midi')
-    pitch_page = np.zeros(page_size, dtype=np.float32)
+    # pitch_detector = aubio.pitch('yinfft', window_size, hop_size, audio_source.samplerate)
+    # pitch_detector.set_unit('midi')
+    # pitch_page = np.zeros(page_size, dtype=np.float32)
 
     spectrum_size = window_size // 2 + 1
     pvoc = aubio.pvoc(window_size, hop_size)
@@ -56,12 +56,16 @@ def analyze(
             .read(hop_size * audio_source.channels)
             .reshape((-1, audio_source.channels))
             .mean(axis=1))
-        pitch_page[i] = pitch_detector(frames_mono)[0]
+        # pitch_page[i] = pitch_detector(frames_mono)[0]
         spectrum_page[i] = pvoc(frames_mono).norm / window_size * 2
         i += 1
         if i == page_size:
-            yield {'pitch': pitch_page, 'spectrum': spectrum_page}
+            yield {
+                # 'pitch': pitch_page,
+                'spectrum': spectrum_page}
             i = 0
         on_progress and on_progress()
     if i != 0:
-        yield {'pitch': pitch_page[:i], 'spectrum': spectrum_page[:i]}
+        yield {
+            # 'pitch': pitch_page[:i],
+            'spectrum': spectrum_page[:i]}

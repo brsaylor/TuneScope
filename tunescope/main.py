@@ -135,7 +135,7 @@ class MainWindow(Widget):
             self.loading_progress = int(round(self.__hops_analyzed / data_length * 100))
 
         for page in analyze(audio_source, hop_size=hop_size, on_progress=on_progress):
-            self.ids.pitch_plot.add_data(page['pitch'])
+            # self.ids.pitch_plot.add_data(page['pitch'])
             self.ids.spectrogram.add_data(page['spectrum'])
 
         fadeout = Animation(opacity=0, duration=1)
