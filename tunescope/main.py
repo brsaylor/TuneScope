@@ -122,8 +122,9 @@ class MainWindow(Widget):
         self.loading_progress = 0
         self.ids.loading_progress_indicator.opacity = 1
 
+        window_size = 4096
+        hop_size = window_size // 4
         audio_source = DecoderBuffer(AudioDecoder(self.player.file_path), 4096)
-        hop_size = 512
         duration_frames = int(math.ceil(self.player.duration * audio_source.samplerate))
         data_length = int(math.ceil(duration_frames / hop_size))
         self.ids.spectrogram.prepare(data_length)
@@ -134,7 +135,10 @@ class MainWindow(Widget):
             self.__hops_analyzed += 1
             self.loading_progress = int(round(self.__hops_analyzed / data_length * 100))
 
-        for page in analyze(audio_source, hop_size=hop_size, on_progress=on_progress):
+        for page in analyze(audio_source,
+                            window_size=window_size,
+                            hop_size=hop_size,
+                            on_progress=on_progress):
             # self.ids.pitch_plot.add_data(page['pitch'])
             self.ids.spectrogram.add_data(page['spectrum'])
 
