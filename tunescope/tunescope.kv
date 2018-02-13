@@ -1,6 +1,7 @@
 #:import ScrollEffect kivy.effects.scroll.ScrollEffect
 #:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
+#:import escape_markup kivy.utils.escape_markup
 
 #:import Player tunescope.player.Player
 #:import Spectrogram tunescope.visualization.spectrogram.Spectrogram
@@ -48,7 +49,7 @@
                 halign: 'left'
                 font_size: '20sp'
             Label:
-                text: "{} - [i]{}[/i]".format(app.player.artist, app.player.album)
+                text: "{} - [i]{}[/i]".format(escape_markup(app.player.artist), escape_markup(app.player.album))
                 markup: True
                 size_hint_y: None
                 size: self.texture_size
@@ -414,7 +415,9 @@
     title: ""
     artist: ""
     album: ""
-    text: "{} - [i]{}, {}[/i]".format(self.title, self.artist, self.album)
+    text: "{} - [i]{}, {}[/i]".format(escape_markup(self.title), escape_markup(self.artist), escape_markup(self.album))
+    shorten: True
+    shorten_from: 'right'
     last: False
     hover: False
 
