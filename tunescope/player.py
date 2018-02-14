@@ -214,6 +214,8 @@ class Player(EventDispatcher):
         """ Populates the class state properties. """
         for prop_name, default in _DEFAULT_STATE.iteritems():
             setattr(self, prop_name, values.get(prop_name, default))
+        if 'position' in values:
+            self.seek(values['position'])
 
     def _sync_position(self, dt):
         """ Update the `position` property from the pipeline position, using interpolation
