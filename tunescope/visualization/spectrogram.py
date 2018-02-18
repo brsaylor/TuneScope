@@ -14,6 +14,21 @@ from .colormaps import viridis
 from .processing import log_axis
 
 
+def _colormap_to_array(colormap, extend_to_black=0):
+    colormap = np.array(colormap)
+
+    if extend_to_black:
+        extra_rows = np.vstack([
+            np.linspace(0, colormap[0,col], num=extend_to_black, endpoint=False)
+            for col in range(colormap.shape[1])
+        ]).T
+        colormap = np.concatenate([extra_rows, colormap], axis=0)
+
+    colormap = (colormap * 255).astype(np.uint8)
+
+    return colormap
+
+
 def spectra_to_pixels(spectra, colormap):
     """spectra dimensions: 
         rows must be a power of 2 
@@ -31,7 +46,7 @@ class Spectrogram(RelativeLayout):
     def __init__(self, **kwargs):
         super(Spectrogram, self).__init__(**kwargs)
         self._scale_matrix = None
-        self._colormap = (np.array(viridis) * 255).astype(np.uint8)
+        self._colormap = _colormap_to_array(viridis)
 
     def prepare(self, data_length):
         """ Prepare the canvas for a new plot """
@@ -49,8 +64,17 @@ class Spectrogram(RelativeLayout):
 
     def add_data(self, spectra):
         spectra = log_axis(spectra)
-        spectra = spectra / np.clip(spectra.max(axis=1)[:,np.newaxis], 0.03, 1) # normalize
-        pixels, texture_size = spectra_to_pixels(np.log10(spectra * 9 + 1), self._colormap)
+
+        spectra = np.log2(spectra + 1)
+
+        spectra = spectra / np.clip(spectra.max(axis=1)[:,np.newaxis], 0.01, 1) # normalize
+        # spectra = spectra * 30
+
+
+        # pixels, texture_size = spectra_to_pixels(np.log10(spectra * 9 + 1), self._colormap)
+        # pixels, texture_size = spectra_to_pixels(np.log2(spectra + 1), self._colormap)
+        pixels, texture_size = spectra_to_pixels(spectra, self._colormap)
+
         if texture_size[1] > self._max_texture_height:
             self._max_texture_height = texture_size[1]
             self._update_scale_matrix()
