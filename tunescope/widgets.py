@@ -48,6 +48,10 @@ class Icon(ButtonBehavior, Label):
         self.text = unichr(self._icon_codes[self.name])
 
 
+class TextButton(ButtonBehavior, Label):
+    pass
+
+
 class PlayerPositionSlider(Slider):
     """ A slider that dispatches 'on_drag_begin' and 'on_drag_end' events """
 

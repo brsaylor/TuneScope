@@ -8,13 +8,21 @@ import math
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, BooleanProperty
+from kivy.properties import (
+    BooleanProperty,
+    ListProperty,
+    NumericProperty,
+    StringProperty,
+)
 from kivy.uix.widget import Widget
+from kivy.uix.modalview import ModalView
+from kivy.uix.boxlayout import BoxLayout
 from kivy.factory import Factory
 from kivy.animation import Animation
 import plyer
 from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
+import numpy as np
 
 from tunescope.player import Player
 from tunescope.audio import AudioDecoder, DecoderBuffer
@@ -40,13 +48,23 @@ else:
 class MainWindow(Widget):
     """ Main application window """
 
-    loading_progress = NumericProperty(0)
+    loading_progress = NumericProperty()
+    selections = ListProperty([dict(
+        start=0,
+        end=1,
+        name="",
+    )])
+    selection_index = NumericProperty()
+    selection_name = StringProperty()
+    editing_selection_name = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_request_close=self.on_request_close)
         Window.bind(on_dropfile=self.on_dropfile)
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
+        self.player.bind(selection_start=self.on_player_selection_start)
+        self.player.bind(selection_end=self.on_player_selection_end)
         self._bind_selection_marker('selection_start')
         self._bind_selection_marker('selection_end')
 
@@ -161,7 +179,7 @@ class MainWindow(Widget):
 
             def on_mouse_pos(window, pos, btn=btn):
                 btn.hover = btn.collide_point(*btn.to_widget(*pos))
-            Window.bind(mouse_pos=on_mouse_pos) # FIXME: unbind on dismiss?
+            Window.bind(mouse_pos=on_mouse_pos)  # FIXME: unbind on dismiss?
 
         mainbutton = self.ids.recent_files_button
         mainbutton.bind(on_release=dropdown.open)
@@ -173,16 +191,85 @@ class MainWindow(Widget):
 
         dropdown.bind(on_select=on_select)
 
+    def show_selection_menu(self):
+        modal = ModalView(size_hint=(0.5, 1))
+        menu = BoxLayout(orientation='vertical')
+
+        def select_item(item):
+            self.selection_index = item.selection_index
+            modal.dismiss()
+
+        def add_selection(button):
+            current_selection = self.selections[self.selection_index]
+            new_selection = dict(
+                start=current_selection['start'],
+                end=current_selection['end'],
+                name="",
+            )
+            self.selections.append(new_selection)
+            self.selection_index = len(self.selections) - 1
+            self.selection_name = ""
+            modal.dismiss()
+
+        for i, selection in enumerate(self.selections):
+            item = Factory.SelectionMenuItem()
+            item.selection_index = i
+            item.selection_name = selection['name']
+            item.last = False
+            item.bind(on_press=select_item)
+            menu.add_widget(item)
+
+        add_button = Factory.MenuItem()
+        add_button.text = "Add selection"
+        add_button.last = True
+        add_button.bind(on_press=add_selection)
+        menu.add_widget(add_button)
+
+        modal.add_widget(menu)
+        modal.open()
+
+    @property
+    def state(self):
+        return dict(
+            selections=self.selections,
+            selection_index=self.selection_index,
+        )
+
+    @state.setter
+    def state(self, values):
+        self.selections = values.get('selections', [])
+        if len(self.selections) == 0:
+            self.selections = [{
+                'name': '',
+                'start': self.player.selection_start,
+                'end': self.player.selection_end,
+            }]
+        self.selection_index = int(np.clip(
+           values.get('selection_index', 0),
+           0,
+           len(self.selections) - 1,
+        ))
+
     def _load_state(self):
         record = self._file_history.get(self.player.file_path)
+
+        # Player state
         try:
             self.player.state = record['state']['player']
         except (KeyError, TypeError):
             self.player.state = {}
 
+        # MainWindow state
+        try:
+            self.state = record['state']['main']
+        except (KeyError, TypeError):
+            self.state = {}
+
     def _save_state(self):
         state = dict(
             player=self.player.state,
+            selections=self.selections,
+            selection_index=self.selection_index,
         )
         self._file_history.update(
             file_path=self.player.file_path,
@@ -202,6 +289,21 @@ class MainWindow(Widget):
         popup.ids.no_button.bind(on_press=popup.dismiss)
         popup.ids.yes_button.bind(on_press=self._grant_itunes_library_permission)
         popup.open()
+
+    def on_selection_index(self, instance, value):
+        selection = self.selections[self.selection_index]
+        self.selection_name = selection['name']
+        self.player.selection_start = selection['start']
+        self.player.selection_end = selection['end']
+
+    def on_selection_name(self, instance, text):
+        self.selections[self.selection_index]['name'] = text
+
+    def on_player_selection_start(self, instance, value):
+        self.selections[self.selection_index]['start'] = value
+
+    def on_player_selection_end(self, instance, value):
+        self.selections[self.selection_index]['end'] = value
 
     def _grant_itunes_library_permission(self, instance):
         self.itunes_confirmation_popup.dismiss()

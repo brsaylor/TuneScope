@@ -129,6 +129,8 @@ class Player(EventDispatcher):
         self._update_looper()
 
     def on_selection_start(self, instance, value):
+        if self.duration < 1:
+            return
         if value < 0:
             self.selection_start = 0
         else:
@@ -137,6 +139,8 @@ class Player(EventDispatcher):
         self._update_looper()
 
     def on_selection_end(self, instance, value):
+        if self.duration < 1:
+            return
         if value > self.duration:
             self.selection_end = self.duration
         else:

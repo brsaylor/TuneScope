@@ -8,6 +8,7 @@
 #:import PitchPlot tunescope.visualization.pitch_plot.PitchPlot
 #:import Icon tunescope.widgets.Icon
 #:import SelectionMarker tunescope.widgets.SelectionMarker
+#:import TextButton tunescope.widgets.TextButton
 
 
 <MainWindow>:
@@ -137,16 +138,18 @@
                 on_release: app.player.playing = not app.player.playing
                 pos_hint: {'center_y': 0.5}
                 font_size: dp(42)
+            Icon:
+                name: 'loop'
+                font_size: dp(32)
+                opacity: 1 if app.player.looping_enabled else 0.5
+                on_release: app.player.looping_enabled = not app.player.looping_enabled
             Label:
                 text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
                 font_name: 'DejaVuSans'
                 size_hint_x: None
                 size: self.texture_size
 
-            # Spacer
-            Widget:
-                size_hint_x: None
-                width: dp(40)
+            Spacer:
 
             VerticalSeparator:
 
@@ -165,44 +168,66 @@
                 range: 1, 10
 
 
+        #
         # Selection toolbar
+        #
+
         Toolbar:
             alt_color: True
+            height: dp(32)
 
             Icon:
-                name: 'loop'
-                font_size: dp(42)
-                opacity: 1 if app.player.looping_enabled else 0.5
-                on_release: app.player.looping_enabled = not app.player.looping_enabled
-
-            Button:
-                text: u"| \u25b6"
-                font_name: 'DejaVuSans'
+                name: 'navicon-round'
+                font_size: dp(24)
+                on_press: root.show_selection_menu()
+            Label:
                 size_hint_x: None
-                width: self.texture_size[0] + dp(10)
-                on_press: app.player.selection_start = app.player.position
-            Button:
+                size: self.texture_size
+                markup: True
+                text: "[b]Selection #{:d}[/b]:".format(root.selection_index + 1)
+            Label:
+                size_hint_x: None
+                size: self.texture_size
+                text: root.selection_name or 'untitled'
+
+            Icon:
+                name: 'edit'
+                font_size: dp(16)
+                on_release: root.on_editing_selection_name = True
+
+            # TextInput:
+            #     value: root.selection_name or 'untitled'
+
+            Spacer:
+                width: dp(20)
+
+            Icon:
+                name: 'android-arrow-dropright-circle'
+                on_release: app.player.selection_start = app.player.position
+                font_size: dp(24)
+            TextButton:
+                size_hint_x: None
+                size: self.texture_size
                 text: app.format_time(app.player.selection_start)
                 font_name: 'DejaVuSans'
-                size_hint_x: None
-                width: dp(100)
-                on_press: app.player.seek(app.player.selection_start)
+                on_release: app.player.seek(app.player.selection_start)
 
-            VerticalSeparator:
-
-            Button:
-                text: u"\u25c0 |"
-                font_name: 'DejaVuSans'
+            Label:
                 size_hint_x: None
-                width: self.texture_size[0] + dp(10)
-                on_press: app.player.selection_end = app.player.position
-            Button:
+                size: self.texture_size
+                text: '-'
+
+            TextButton:
+                size_hint_x: None
+                size: self.texture_size
                 text: app.format_time(app.player.selection_end)
                 font_name: 'DejaVuSans'
-                size_hint_x: None
-                width: dp(100)
-                on_press: app.player.seek(app.player.selection_end)
-
+                on_release: app.player.seek(app.player.selection_end)
+            Icon:
+                name: 'android-arrow-dropleft-circle'
+                on_release: app.player.selection_end = app.player.position
+                font_size: dp(24)
+            
 
         # Speed control
         Toolbar:
@@ -394,6 +419,15 @@
     cursor_size: dp(24), dp(24)
 
 
+<TextButton>:
+    color: app.theme.text_button_color
+
+
+<Spacer@Widget>:
+    size_hint_x: None
+    width: dp(40)
+
+
 <LoadingProgressIndicator@Label>:
     percentage: 0
     text: " {:d}%".format(self.percentage)
@@ -414,12 +448,7 @@
             radius: [dp(16)]
 
 
-<RecentFilesDropDown@DropDown>:
-    auto_width: False
-    width: Window.width - self.x - dp(8)
-
-
-<RecentFileItem@Button>:
+<MenuItem@Button>:
     background_normal: ''
     background_down: ''
     size_hint_y: None
@@ -429,14 +458,22 @@
     valign: 'middle'
     markup: True
     text_size: self.size
+    hover: False
+    last: False
+
+
+<RecentFilesDropDown@DropDown>:
+    auto_width: False
+    width: Window.width - self.x - dp(8)
+
+
+<RecentFileItem@MenuItem>:
     title: ""
     artist: ""
     album: ""
     text: "{} - [i]{}, {}[/i]".format(escape_markup(self.title), escape_markup(self.artist), escape_markup(self.album))
     shorten: True
     shorten_from: 'right'
-    last: False
-    hover: False
 
     canvas.after:
         Color:
@@ -449,3 +486,9 @@
         Rectangle:
             size: self.size
             pos: self.pos
+
+
+<SelectionMenuItem@MenuItem>:
+    selection_index: 0
+    selection_name: ''
+    text: "Selection #{:d}: {}".format(self.selection_index + 1, self.selection_name)

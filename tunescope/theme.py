@@ -16,6 +16,7 @@ class Theme(EventDispatcher):
     background_color            = ListProperty([0, 0, 0, 1])
     background_alt_color        = ListProperty([0.2, 0.2, 0.2, 1])
     text_color                  = ListProperty([1, 1, 1, 1])
+    text_button_color           = ListProperty([1, 1, 1, 1])
     button_background_color     = ListProperty([0.5, 0.5, 0.5, 1])
     button_text_color           = ListProperty([1, 1, 1, 1])
     icon_color                  = ListProperty([1, 1, 1, 1])
