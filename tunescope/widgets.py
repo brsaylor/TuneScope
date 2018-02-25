@@ -1,8 +1,51 @@
-from kivy.uix.widget import Widget
-from kivy.uix.slider import Slider
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image
+import json
+import os
+
+from kivy.core.text import LabelBase
 from kivy.properties import StringProperty, NumericProperty, BooleanProperty
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.label import Label
+from kivy.uix.slider import Slider
+from kivy.uix.widget import Widget
+
+from .util import get_data_dir
+
+
+class Icon(ButtonBehavior, Label):
+    """ A pressable vector icon from the Ionicons icon set. Use `font_size` to
+    set the size. See see tunescope/data/ionicons/ionicons.json or
+    http://ionicons.com/ for the available icons. """
+
+    name = StringProperty('')
+    """ Name of the Ionicons icon (exclude the 'ion-' prefix) """
+
+    _icons_loaded = False
+    _icon_codes = {}
+
+    def __init__(self, name='', **kwargs):
+        super(Icon, self).__init__(**kwargs)
+        self._load_icons()
+        self.font_name = 'Ionicons'
+        self.name = name
+
+    @classmethod
+    def _load_icons(cls):
+        if cls._icons_loaded:
+            return
+
+        LabelBase.register(
+            name='Ionicons',
+            fn_regular=os.path.join(get_data_dir(), 'ionicons/ionicons.ttf'))
+        with open(os.path.join(get_data_dir(), 'ionicons/ionicons.json')) as f:
+            ionicons_data = json.load(f)
+
+        for icon_info in ionicons_data['icons']:
+            cls._icon_codes[icon_info['name']] = int(icon_info['code'], base=16)
+
+        cls._icons_loaded = True
+
+    def on_name(self, *args):
+        self.text = unichr(self._icon_codes[self.name])
 
 
 class PlayerPositionSlider(Slider):
@@ -26,15 +69,6 @@ class PlayerPositionSlider(Slider):
 
     def on_drag_end(self):
         pass
-
-
-class IconButton(ButtonBehavior, Image):
-
-    icon = StringProperty()
-
-    def on_icon(self, instance, value):
-        self.source = 'data/icons/png/{}.png'.format(value)
-        self.mipmap = True
 
 
 class SelectionMarker(Widget):

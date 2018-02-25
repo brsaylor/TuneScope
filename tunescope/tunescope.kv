@@ -6,7 +6,7 @@
 #:import Player tunescope.player.Player
 #:import Spectrogram tunescope.visualization.spectrogram.Spectrogram
 #:import PitchPlot tunescope.visualization.pitch_plot.PitchPlot
-#:import IconButton tunescope.widgets.IconButton
+#:import Icon tunescope.widgets.Icon
 #:import SelectionMarker tunescope.widgets.SelectionMarker
 
 
@@ -132,10 +132,11 @@
 
         # Player toolbar
         Toolbar:
-            LargeIconButton:
-                icon: 'pause' if app.player.playing else 'play'
-                on_press: app.player.playing = not app.player.playing
+            Icon:
+                name: 'ios-pause' if app.player.playing else 'ios-play'
+                on_release: app.player.playing = not app.player.playing
                 pos_hint: {'center_y': 0.5}
+                font_size: dp(42)
             Label:
                 text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
                 font_name: 'DejaVuSans'
@@ -148,15 +149,17 @@
                 width: dp(40)
 
             VerticalSeparator:
-            LargeIconButton:
-                icon: 'zoom-horizontal'
+
+            ZoomIcon:
+                zoom_direction: 'horizontal'
             Slider:
                 id: horizontal_zoom
                 range: 1, 20
 
             VerticalSeparator:
-            LargeIconButton:
-                icon: 'zoom-vertical'
+
+            ZoomIcon:
+                zoom_direction: 'vertical'
             Slider:
                 id: vertical_zoom
                 range: 1, 10
@@ -166,10 +169,11 @@
         Toolbar:
             alt_color: True
 
-            LargeIconButton:
-                icon: 'looping-enabled' if app.player.looping_enabled else 'looping-disabled'
+            Icon:
+                name: 'loop'
+                font_size: dp(42)
                 opacity: 1 if app.player.looping_enabled else 0.5
-                on_press: app.player.looping_enabled = not app.player.looping_enabled
+                on_release: app.player.looping_enabled = not app.player.looping_enabled
 
             Button:
                 text: u"| \u25b6"
@@ -222,16 +226,18 @@
                 text: "Transpose"
                 size_hint_x: None
                 width: self.texture_size[0]
-            SmallIconButton:
-                icon: 'minus'
-                on_press: app.player.increment_transpose(-1)
+            Icon:
+                name: 'android-arrow-dropdown-circle'
+                on_release: app.player.increment_transpose(-1)
+                font_size: dp(24)
             Label:
                 text: '{:+d}'.format(app.player.transpose)
                 size_hint_x: None
                 width: dp(32)
-            SmallIconButton:
-                icon: 'plus'
+            Icon:
+                name: 'android-arrow-dropup-circle'
                 on_press: app.player.increment_transpose(1)
+                font_size: dp(24)
 
             VerticalSeparator:
 
@@ -274,18 +280,10 @@
             points: self.x, self.y, self.x, self.y + self.height
 
 
-<IconButton>:
+<Icon>:
     color: app.theme.icon_color
-
-
-<LargeIconButton@IconButton>:
+    size: self.texture_size
     size_hint_x: None
-    size: dp(40), dp(40)
-
-
-<SmallIconButton@IconButton>:
-    size_hint_x: None
-    size: dp(32), dp(32)
 
 
 <ITunesConfirmationPopup@Popup>:
@@ -359,6 +357,25 @@
                 x: 1 + (root.width if root.is_end_marker else 0)
         canvas.after:
             PopMatrix
+
+
+<ZoomIcon@BoxLayout>:
+    zoom_direction: 'horizontal'
+    orientation: 'horizontal'
+    size_hint_x: None
+    width: icon.width + label.width
+
+    Icon:
+        id: icon
+        name: 'ios-search-strong'
+        font_size: dp(24)
+    Label:
+        id: label
+        font_name: 'DejaVuSans'
+        font_size: dp(24)
+        width: self.texture_size[0]
+        size_hint_x: None
+        text: u'\u2194' if root.zoom_direction == 'horizontal' else u'\u2195'
 
 
 <Label>:
