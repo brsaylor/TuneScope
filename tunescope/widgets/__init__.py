@@ -8,7 +8,7 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.widget import Widget
 
-from .util import get_data_dir
+from ..util import get_data_dir
 
 
 class Icon(ButtonBehavior, Label):
