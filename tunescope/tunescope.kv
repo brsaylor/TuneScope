@@ -184,22 +184,10 @@
                 size_hint_x: None
                 size: self.texture_size
                 markup: True
-                text: "[b]Selection #{:d}[/b]:".format(root.selection_index + 1)
-            Label:
-                size_hint_x: None
-                size: self.texture_size
-                text: root.selection_name or 'untitled'
-
-            Icon:
-                name: 'edit'
-                font_size: dp(16)
-                on_release: root.on_editing_selection_name = True
-
-            # TextInput:
-            #     value: root.selection_name or 'untitled'
+                text: "[b]Selection #{:d}[/b]".format(root.selection_index + 1)
 
             Spacer:
-                width: dp(20)
+                width: dp(10)
 
             Icon:
                 name: 'android-arrow-dropright-circle'
@@ -227,7 +215,19 @@
                 name: 'android-arrow-dropleft-circle'
                 on_release: app.player.selection_end = app.player.position
                 font_size: dp(24)
-            
+
+            Spacer:
+                width: dp(10)
+
+            Label:
+                size_hint_x: None
+                size: self.texture_size
+                text: root.selection_name or 'untitled'
+            Icon:
+                name: 'edit'
+                font_size: dp(16)
+                on_release: root.on_editing_selection_name = True
+
 
         # Speed control
         Toolbar:
