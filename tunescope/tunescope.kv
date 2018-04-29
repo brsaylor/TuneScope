@@ -461,17 +461,29 @@
 
 
 <MenuItem@Button>:
-    background_normal: ''
     background_down: ''
-    size_hint_y: None
-    height: dp(35)
-    padding: dp(8), dp(0)
+    background_normal: ''
     halign: 'left'
-    valign: 'middle'
-    markup: True
-    text_size: self.size
-    hover: False
+    height: dp(35)
+    highlighted: False
     last: False
+    markup: True
+    padding: dp(8), dp(0)
+    size_hint_y: None
+    text_size: self.size
+    valign: 'middle'
+
+    canvas.after:
+        Color:
+            rgba: 1, 1, 1, 0 if self.last else 0.25
+        Line:
+            points: self.x + dp(8), self.y, self.x + self.width - dp(8), self.y
+            width: dp(1)
+        Color:
+            rgba: 1, 1, 1, 0.25 if self.highlighted else 0
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 
 <RecentFilesDropDown@DropDown>:
@@ -486,18 +498,8 @@
     text: "{} - [i]{}, {}[/i]".format(escape_markup(self.title), escape_markup(self.artist), escape_markup(self.album))
     shorten: True
     shorten_from: 'right'
-
-    canvas.after:
-        Color:
-            rgba: 1, 1, 1, 0 if self.last else 0.25
-        Line:
-            points: self.x + dp(8), self.y, self.x + self.width - dp(8), self.y
-            width: dp(1)
-        Color:
-            rgba: 1, 1, 1, 0.25 if self.hover else 0
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    hover: False
+    highlighted: self.hover
 
 
 <SelectionMenuItem@MenuItem>:
