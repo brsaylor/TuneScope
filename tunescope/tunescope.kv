@@ -219,14 +219,26 @@
             Spacer:
                 width: dp(10)
 
-            Label:
-                size_hint_x: None
-                size: self.texture_size
-                text: root.selection_name or 'untitled'
             Icon:
                 name: 'edit'
                 font_size: dp(16)
-                on_release: root.on_editing_selection_name = True
+                on_release: root.editing_selection_name = True
+
+            TextInput:
+                background_active: ''
+                background_color: 0,0,0,0
+                background_disabled_normal: ''
+                background_normal: ''
+                cursor_color: 1,1,1,1
+                focused: root.editing_selection_name
+                foreground_color: app.theme.text_color
+                hint_text: 'untitled'
+                multiline: False
+                on_focused: root.editing_selection_name = self.focused
+                on_text: root.selection_name = self.text
+                padding: 0,0,0,0
+                text: root.selection_name or ''
+
 
 
         # Speed control
