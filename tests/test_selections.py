@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 from tunescope.selections import SelectionList, Selection
@@ -28,6 +30,31 @@ def make_three_selection_list():
     sl.current.end = 6.0
 
     return sl
+
+
+three_selection_list_state = {
+    'selections': [
+        {
+            'number': 1,
+            'name': 'first',
+            'start': 1.0,
+            'end': 2.0,
+        },
+        {
+            'number': 2,
+            'name': 'second',
+            'start': 3.0,
+            'end': 4.0,
+        },
+        {
+            'number': 3,
+            'name': 'third',
+            'start': 5.0,
+            'end': 6.0,
+        },
+    ],
+    'current_index': 0,
+}
 
 
 class TestSelectionList(object):
@@ -113,16 +140,39 @@ class TestSelectionList(object):
         # should reject if the value being set is not a selection in the list
         sl = SelectionList()
         s = Selection()
-        # with pytest.raises(ValueError):
-        #     sl.current = s
+        with pytest.raises(ValueError):
+            sl.current = s
 
-
+    def test_sort_by_nonexistent_property(self):
+        sl = make_three_selection_list()
+        with pytest.raises(ValueError):
+            sl.sort('badprop')
 
     def test_sort(self):
-        pass
+        sl = make_three_selection_list()
+        sl.selections[0].start = 10.0
 
-    def test_set_state(self):
-        pass
+        sl.sort('start')
+
+        assert [s.start for s in sl.selections] == [3.0, 5.0, 10.0]
+
+        sl.sort('name', reverse=True)
+
+        assert [s.name for s in sl.selections] == ['third', 'second', 'first']
 
     def test_get_state(self):
-        pass
+        sl = make_three_selection_list()
+        sl.current = sl.selections[1]
+        expected_state = copy.copy(three_selection_list_state)
+        expected_state['current_index'] = 1
+
+        assert sl.state == expected_state
+
+    def test_set_state(self):
+        sl = SelectionList()
+        state_to_set = copy.copy(three_selection_list_state)
+        state_to_set['current_index'] = 1
+        sl.state = three_selection_list_state
+        sl.current = sl.selections[1]
+
+        assert sl.state == state_to_set

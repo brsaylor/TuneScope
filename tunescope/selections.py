@@ -3,10 +3,10 @@ from kivy.properties import NumericProperty, ListProperty, ObjectProperty, Strin
 
 
 class Selection(EventDispatcher):
-    number = NumericProperty()
-    name = StringProperty('')
-    start = NumericProperty(0.0)
-    end = NumericProperty(0.0)
+    number = NumericProperty()    # user-visible auto-incrementing selection number
+    name = StringProperty('')     # user-entered selection name
+    start = NumericProperty(0.0)  # start time in seconds
+    end = NumericProperty(0.0)    # end time in seconds
 
     def __init__(self, **kwargs):
         super(Selection, self).__init__(**kwargs)
@@ -14,14 +14,16 @@ class Selection(EventDispatcher):
 
 class SelectionList(EventDispatcher):
     selections = ListProperty([])
-    current = ObjectProperty(None, rebind=True)
+    current = ObjectProperty(None, rebind=True)  # current Selection
 
     def __init__(self, **kwargs):
         super(SelectionList, self).__init__(**kwargs)
-        self.current = Selection(number=1)
-        self.selections.append(self.current)
+        self.selections.append(Selection(number=1))
+        self.current = self.selections[0]
 
     def add(self):
+        """ Make a new selection based on the current one and set it as current """
+
         selection = Selection(
             number=max([s.number for s in self.selections]) + 1,
             start=self.current.start,
@@ -53,3 +55,35 @@ class SelectionList(EventDispatcher):
     def on_current(self, instance, value):
         if value not in self.selections:
             raise ValueError()
+
+    def sort(self, sort_property, reverse=False):
+        if sort_property not in self.current.properties().keys():
+            raise ValueError()
+        self.selections = sorted(
+            self.selections,
+            key=lambda s: getattr(s, sort_property),
+            reverse=reverse)
+
+    @property
+    def state(self):
+        """ Return a dictionary representing the persistable state of this SelectionList """
+
+        return {
+            'selections': [
+                {
+                    'number': s.number,
+                    'name': s.name,
+                    'start': s.start,
+                    'end': s.end,
+                }
+                for s in self.selections
+            ],
+            'current_index': self.selections.index(self.current),
+        }
+
+    @state.setter
+    def state(self, values):
+        """ Initialize this SelectionList from a persisted state dictionary """
+
+        self.selections = [Selection(**s) for s in values['selections']]
+        self.current = self.selections[values['current_index']]
