@@ -184,7 +184,15 @@
                 size_hint_x: None
                 size: self.texture_size
                 markup: True
-                text: "[b]Selection #{:d}[/b]".format(root.selection_index + 1)
+                text: "[b]Selection #{:d}[/b]".format(root.selection_list.current.number)
+
+            Spacer:
+                width: dp(10)
+
+            Icon:
+                name: 'plus-circled'
+                on_release: root.selection_list.add()
+                font_size: dp(24)
 
             Spacer:
                 width: dp(10)
@@ -235,10 +243,9 @@
                 hint_text: 'untitled'
                 multiline: False
                 on_focused: root.editing_selection_name = self.focused
-                on_text: root.selection_name = self.text
+                on_text: root.selection_list.current.name = self.text
                 padding: 0,0,0,0
-                text: root.selection_name or ''
-
+                text: root.selection_list.current.name
 
 
         # Speed control
@@ -503,6 +510,7 @@
 
 
 <SelectionMenuItem@MenuItem>:
-    selection_index: 0
-    selection_name: ''
-    text: "Selection #{:d}: {}".format(self.selection_index + 1, self.selection_name)
+    index: 0
+    number: 0
+    name: ''
+    text: "Selection #{:d}: {}".format(self.number, self.name)

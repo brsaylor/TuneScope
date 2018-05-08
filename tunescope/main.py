@@ -10,9 +10,8 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import (
     BooleanProperty,
-    ListProperty,
     NumericProperty,
-    StringProperty,
+    ObjectProperty,
 )
 from kivy.uix.widget import Widget
 from kivy.uix.modalview import ModalView
@@ -22,12 +21,12 @@ from kivy.animation import Animation
 import plyer
 from async_gui.engine import Task
 from async_gui.toolkits.kivy import KivyEngine
-import numpy as np
 
 from tunescope.player import Player
 from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.analysis import analyze
 from tunescope.util import bind_properties
+from tunescope.selections import SelectionList
 from tunescope.filehistory import FileHistory
 from tunescope.theme import Theme
 
@@ -49,19 +48,14 @@ class MainWindow(Widget):
     """ Main application window """
 
     loading_progress = NumericProperty()
-    selections = ListProperty([dict(
-        start=0,
-        end=1,
-        name="",
-    )])
-    selection_index = NumericProperty()
-    selection_name = StringProperty()
+    selection_list = ObjectProperty(SelectionList(), rebind=True)
     editing_selection_name = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         Window.bind(on_request_close=self.on_request_close)
         Window.bind(on_dropfile=self.on_dropfile)
+        self.selection_list = SelectionList()
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
         self.player.bind(selection_start=self.on_player_selection_start)
         self.player.bind(selection_end=self.on_player_selection_end)
@@ -149,6 +143,7 @@ class MainWindow(Widget):
         self.ids.pitch_plot.prepare(data_length)
 
         self.__hops_analyzed = 0
+
         def on_progress():
             self.__hops_analyzed += 1
             self.loading_progress = int(round(self.__hops_analyzed / data_length * 100))
@@ -196,27 +191,23 @@ class MainWindow(Widget):
         menu = BoxLayout(orientation='vertical')
 
         def select_item(item):
-            self.selection_index = item.selection_index
+            selection = self.selection_list.selections[item.index]
+            self.selection_list.current = selection
+            self.player.selection_start = selection.start
+            self.player.selection_end = selection.end
             modal.dismiss()
 
         def add_selection(button):
-            current_selection = self.selections[self.selection_index]
-            new_selection = dict(
-                start=current_selection['start'],
-                end=current_selection['end'],
-                name="",
-            )
-            self.selections.append(new_selection)
-            self.selection_index = len(self.selections) - 1
-            self.selection_name = ""
+            self.selection_list.add()
             modal.dismiss()
 
-        for i, selection in enumerate(self.selections):
+        for i, selection in enumerate(self.selection_list.selections):
             item = Factory.SelectionMenuItem()
-            item.selection_index = i
-            item.selection_name = selection['name']
+            item.index = i
+            item.number = selection.number
+            item.name = selection.name
             item.last = False
-            item.bind(on_press=select_item)
+            item.bind(on_release=select_item)
             menu.add_widget(item)
 
         add_button = Factory.MenuItem()
@@ -230,54 +221,38 @@ class MainWindow(Widget):
 
     @property
     def state(self):
+        """ Return the persistable app state as a dict """
         return dict(
-            selections=self.selections,
-            selection_index=self.selection_index,
+            player=self.player.state,
+            selection_list=self.selection_list.state,
         )
 
     @state.setter
     def state(self, values):
-        self.selections = values.get('selections', [])
-        if len(self.selections) == 0:
-            self.selections = [{
-                'name': '',
-                'start': self.player.selection_start,
-                'end': self.player.selection_end,
-            }]
-        self.selection_index = int(np.clip(
-           values.get('selection_index', 0),
-           0,
-           len(self.selections) - 1,
-        ))
+        """ Restore app state from a dict """
 
-    def _load_state(self):
-        record = self._file_history.get(self.player.file_path)
-
-        # Player state
         try:
-            self.player.state = record['state']['player']
+            self.selection_list.state = values['selection_list']
+        except (KeyError, TypeError):
+            self.selection_list.state = {}
+
+        try:
+            self.player.state = values['player']
         except (KeyError, TypeError):
             self.player.state = {}
 
-        # MainWindow state
-        try:
-            self.state = record['state']['main']
-        except (KeyError, TypeError):
-            self.state = {}
+    def _load_state(self):
+        record = self._file_history.get(self.player.file_path)
+        self.state = record['state']
 
     def _save_state(self):
-        state = dict(
-            player=self.player.state,
-            selections=self.selections,
-            selection_index=self.selection_index,
-        )
         self._file_history.update(
             file_path=self.player.file_path,
             last_opened=self._file_opened_time,
             title=self.player.title,
             artist=self.player.artist,
             album=self.player.album,
-            state=state,
+            state=self.state,
         )
 
     def on_dropfile(self, window, filename):
@@ -296,14 +271,11 @@ class MainWindow(Widget):
         self.player.selection_start = selection['start']
         self.player.selection_end = selection['end']
 
-    def on_selection_name(self, instance, text):
-        self.selections[self.selection_index]['name'] = text
-
     def on_player_selection_start(self, instance, value):
-        self.selections[self.selection_index]['start'] = value
+        self.selection_list.current.start = value
 
     def on_player_selection_end(self, instance, value):
-        self.selections[self.selection_index]['end'] = value
+        self.selection_list.current.end = value
 
     def _grant_itunes_library_permission(self, instance):
         self.itunes_confirmation_popup.dismiss()

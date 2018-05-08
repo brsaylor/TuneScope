@@ -84,6 +84,10 @@ class SelectionList(EventDispatcher):
     @state.setter
     def state(self, values):
         """ Initialize this SelectionList from a persisted state dictionary """
+        # FIXME: validate
 
-        self.selections = [Selection(**s) for s in values['selections']]
-        self.current = self.selections[values['current_index']]
+        self.selections = [Selection(**s) for s in values.get('selections', [])]
+        if len(self.selections) == 0:
+            self.selections.append(Selection(number=1))
+
+        self.current = self.selections[values.get('current_index', 0)]
