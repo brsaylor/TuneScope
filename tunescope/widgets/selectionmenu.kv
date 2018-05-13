@@ -1,0 +1,37 @@
+<SelectionMenu>:
+    GridLayout:
+        id: grid
+        cols: 5
+
+        Header:
+            text: '#'
+            on_release: root.on_header_press(*args)
+        Header:
+            text: 'Name'
+            on_release: root.on_header_press(*args)
+        Header:
+            text: 'Start'
+            on_release: root.on_header_press(*args)
+        Header:
+            text: 'End'
+            on_release: root.on_header_press(*args)
+        Header:
+            text: 'X'
+            on_release: root.on_header_press(*args)
+
+<Header>:
+    text: ''
+    orientation: 'horizontal'
+    canvas.after:
+        Color:
+            rgb: 1,1,1
+        Line:
+            points: self.x, self.y, self.x, self.y + self.height, self.x + self.width, self.y + self.height, self.x + self.width, self.y, self.x, self.y
+    Label:
+        text: root.text
+
+<Cell>:
+    text: ''
+    orientation: 'horizontal'
+    Label:
+        text: root.text
