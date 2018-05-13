@@ -1,18 +1,28 @@
+#:import Icon tunescope.widgets.Icon
+
 <SelectionMenu>:
     GridLayout:
         id: grid
         cols: 5
 
         Header:
+            sort_by: 'number'
+            is_sorted: self.sort_by == root.sorted_by
             text: '#'
             on_release: root.on_header_press(*args)
         Header:
+            sort_by: 'name'
+            is_sorted: self.sort_by == root.sorted_by
             text: 'Name'
             on_release: root.on_header_press(*args)
         Header:
+            sort_by: 'start'
+            is_sorted: self.sort_by == root.sorted_by
             text: 'Start'
             on_release: root.on_header_press(*args)
         Header:
+            sort_by: 'end'
+            is_sorted: self.sort_by == root.sorted_by
             text: 'End'
             on_release: root.on_header_press(*args)
         Header:
@@ -22,6 +32,9 @@
 <Header>:
     text: ''
     orientation: 'horizontal'
+    sort_by: ''
+    is_sorted: False
+    reverse_sort: False
     canvas.after:
         Color:
             rgb: 1,1,1
@@ -29,9 +42,16 @@
             points: self.x, self.y, self.x, self.y + self.height, self.x + self.width, self.y + self.height, self.x + self.width, self.y, self.x, self.y
     Label:
         text: root.text
+    Icon:
+        opacity: 1 if root.is_sorted else 0
+        name: 'ios-arrow-down' if root.reverse_sort else 'ios-arrow-up'
 
 <Cell>:
     text: ''
     orientation: 'horizontal'
     Label:
         text: root.text
+
+# <TrashIcon>:
+#     name: 'ios-trash'
+#     color: 'white'

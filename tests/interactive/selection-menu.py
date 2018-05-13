@@ -10,12 +10,12 @@ class RootWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(RootWidget, self).__init__(orientation='vertical')
         sl = SelectionList()
-        sl.current.name = 'first'
+        sl.current.name = 'zz_first'
         sl.current.start = 1.0
         sl.current.end = 2.0
 
         sl.add()
-        sl.current.name = 'second'
+        sl.current.name = 'aa_second'
         sl.current.start = 3.0
         sl.current.end = 4.0
 
