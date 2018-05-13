@@ -1,0 +1,68 @@
+#:import Icon tunescope.widgets.Icon
+
+#:set ROW_HEIGHT sp(35)
+
+<SelectionMenu>:
+    size_hint_y: None
+
+    GridLayout:
+        id: grid
+        cols: 5
+        size_hint_y: None
+
+        Header:
+            id: header0
+            sort_by: 'number'
+            is_sorted: self.sort_by == root.sorted_by
+            text: '#'
+            on_release: root.on_header_press(*args)
+        Header:
+            sort_by: 'name'
+            is_sorted: self.sort_by == root.sorted_by
+            text: 'Name'
+            on_release: root.on_header_press(*args)
+        Header:
+            sort_by: 'start'
+            is_sorted: self.sort_by == root.sorted_by
+            text: 'Start'
+            on_release: root.on_header_press(*args)
+        Header:
+            sort_by: 'end'
+            is_sorted: self.sort_by == root.sorted_by
+            text: 'End'
+            on_release: root.on_header_press(*args)
+        Header:
+            text: 'X'
+            on_release: root.on_header_press(*args)
+
+<Header>:
+    height: ROW_HEIGHT
+    is_sorted: False
+    orientation: 'horizontal'
+    reverse_sort: False
+    size_hint_y: None
+    sort_by: ''
+    text: ''
+
+    canvas.after:
+        Color:
+            rgb: 1,1,1
+        Line:
+            points: self.x, self.y, self.x, self.y + self.height, self.x + self.width, self.y + self.height, self.x + self.width, self.y, self.x, self.y
+
+    Label:
+        text: root.text
+    Icon:
+        opacity: 1 if root.is_sorted else 0
+        name: 'ios-arrow-down' if root.reverse_sort else 'ios-arrow-up'
+
+<Cell>:
+    height: ROW_HEIGHT
+    is_current_selection: False
+    orientation: 'horizontal'
+    size_hint_y: None
+    text: ''
+
+    Label:
+        text: root.text
+        bold: root.is_current_selection

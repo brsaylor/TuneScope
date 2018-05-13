@@ -1,35 +1,37 @@
 from __future__ import division
-import sys
-import os.path
-import platform
 import datetime
 import math
+import os.path
+import platform
+import sys
 
+from async_gui.engine import Task
+from async_gui.toolkits.kivy import KivyEngine
 from kivy import Logger
+from kivy.animation import Animation
 from kivy.app import App
-from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.factory import Factory
+from kivy.metrics import dp
 from kivy.properties import (
     BooleanProperty,
     NumericProperty,
     ObjectProperty,
 )
-from kivy.uix.widget import Widget
-from kivy.uix.modalview import ModalView
 from kivy.uix.boxlayout import BoxLayout
-from kivy.factory import Factory
-from kivy.animation import Animation
+from kivy.uix.modalview import ModalView
+from kivy.uix.widget import Widget
 import plyer
-from async_gui.engine import Task
-from async_gui.toolkits.kivy import KivyEngine
 
-from tunescope.player import Player
-from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.analysis import analyze
-from tunescope.util import bind_properties
-from tunescope.selections import SelectionList
+from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.filehistory import FileHistory
+from tunescope.player import Player
+from tunescope.selections import SelectionList
 from tunescope.theme import Theme
+from tunescope.util import bind_properties
+from tunescope.widgets.selectionmenu import SelectionMenu
 
 
 _async_engine = KivyEngine()
@@ -191,34 +193,22 @@ class MainWindow(Widget):
         dropdown.bind(on_select=on_select)
 
     def show_selection_menu(self):
-        modal = ModalView(size_hint=(0.5, 1))
-        menu = BoxLayout(orientation='vertical')
+        padding = dp(10)
+        modal = ModalView(
+            size_hint=(0.7, None),
+            anchor_x='left',
+            anchor_y='top',
+            padding=padding,
+        )
+        menu = SelectionMenu(
+            dismiss=modal.dismiss,
+            selection_list=self.selection_list
+        )
 
-        def select_item(item):
-            selection = self.selection_list.selections[item.index]
-            self.selection_list.current = selection
-            self.player.selection_start = selection.start
-            self.player.selection_end = selection.end
-            modal.dismiss()
+        def on_menu_min_height(menu_, min_height):
+            modal.height = min_height + 2 * padding
 
-        def add_selection(button):
-            self.selection_list.add()
-            modal.dismiss()
-
-        for i, selection in enumerate(self.selection_list.selections):
-            item = Factory.SelectionMenuItem()
-            item.index = i
-            item.number = selection.number
-            item.name = selection.name
-            item.last = False
-            item.bind(on_release=select_item)
-            menu.add_widget(item)
-
-        add_button = Factory.MenuItem()
-        add_button.text = "Add selection"
-        add_button.last = True
-        add_button.bind(on_press=add_selection)
-        menu.add_widget(add_button)
+        menu.bind(min_height=on_menu_min_height)
 
         modal.add_widget(menu)
         modal.open()
@@ -321,11 +311,6 @@ class TuneScopeApp(App):
         self.theme = Theme()
         return MainWindow()
 
-    @staticmethod
-    def format_time(t):
-        minutes = int(t) // 60
-        seconds = t - 60 * minutes
-        return "{}:{:05.2f}".format(minutes, seconds)
 
 
 if __name__ == '__main__':

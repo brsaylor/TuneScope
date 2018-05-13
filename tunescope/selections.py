@@ -15,7 +15,7 @@ class Selection(EventDispatcher):
 class SelectionList(EventDispatcher):
     selections = ListProperty([])
     current = ObjectProperty(None, rebind=True)  # current Selection
-
+    
     def __init__(self, **kwargs):
         super(SelectionList, self).__init__(**kwargs)
         self.selections.append(Selection(number=1))

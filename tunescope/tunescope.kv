@@ -1,14 +1,15 @@
-#:import ScrollEffect kivy.effects.scroll.ScrollEffect
-#:import Factory kivy.factory.Factory
-#:import Window kivy.core.window.Window
 #:import escape_markup kivy.utils.escape_markup
+#:import Factory kivy.factory.Factory
+#:import ScrollEffect kivy.effects.scroll.ScrollEffect
+#:import Window kivy.core.window.Window
 
-#:import Player tunescope.player.Player
-#:import Spectrogram tunescope.visualization.spectrogram.Spectrogram
-#:import PitchPlot tunescope.visualization.pitch_plot.PitchPlot
 #:import Icon tunescope.widgets.Icon
+#:import PitchPlot tunescope.visualization.pitch_plot.PitchPlot
+#:import Player tunescope.player.Player
 #:import SelectionMarker tunescope.widgets.SelectionMarker
+#:import Spectrogram tunescope.visualization.spectrogram.Spectrogram
 #:import TextButton tunescope.widgets.TextButton
+#:import format_time tunescope.util.format_time
 
 
 <MainWindow>:
@@ -144,7 +145,7 @@
                 opacity: 1 if app.player.looping_enabled else 0.5
                 on_release: app.player.looping_enabled = not app.player.looping_enabled
             Label:
-                text: "{} / {}".format(app.format_time(app.player.position), app.format_time(app.player.duration))
+                text: "{} / {}".format(format_time(app.player.position), format_time(app.player.duration))
                 font_name: 'DejaVuSans'
                 size_hint_x: None
                 size: self.texture_size
@@ -204,7 +205,7 @@
             TextButton:
                 size_hint_x: None
                 size: self.texture_size
-                text: app.format_time(app.player.selection_start)
+                text: format_time(app.player.selection_start)
                 font_name: 'DejaVuSans'
                 on_release: app.player.seek(app.player.selection_start)
 
@@ -216,7 +217,7 @@
             TextButton:
                 size_hint_x: None
                 size: self.texture_size
-                text: app.format_time(app.player.selection_end)
+                text: format_time(app.player.selection_end)
                 font_name: 'DejaVuSans'
                 on_release: app.player.seek(app.player.selection_end)
             Icon:
@@ -507,10 +508,3 @@
     shorten_from: 'right'
     hover: False
     highlighted: self.hover
-
-
-<SelectionMenuItem@MenuItem>:
-    index: 0
-    number: 0
-    name: ''
-    text: "Selection #{:d}: {}".format(self.number, self.name)
