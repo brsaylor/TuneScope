@@ -103,3 +103,14 @@ def test_find_by_filename(db_path):
 
     records_out = filehistory.find_by_filename('file1', 3)
     assert records_out == expected_records_out
+
+
+def test_delete(db_path):
+    filehistory = FileHistory(db_path)
+    record1 = create_test_record('/dir/file1', 1)
+    record2 = create_test_record('/dir/file2', 2)
+    filehistory.update(**record1)
+    filehistory.update(**record2)
+    filehistory.delete('/dir', 'file1')
+    del record2['state']
+    assert filehistory.recent(10) == [record2]

@@ -111,6 +111,12 @@ class FileHistory(object):
         records = c.fetchall()
         return [dict(record) for record in records]
 
+    def delete(self, directory, filename):
+        """ Delete the record with the given directory and filename """
+        c = self._db.cursor()
+        c.execute('DELETE FROM file_history WHERE directory = ? AND filename = ?',
+                  (directory, filename))
+
     def __del__(self):
         if self._db is not None:
             self._db.close()
