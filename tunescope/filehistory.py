@@ -3,11 +3,23 @@ import json
 
 
 class FileHistory(object):
-    """ Creates and manages sqlite db to keep track of the opened files
-    base on the filepath as the primary key. Each record is uniquely
-    identified by `file_path` and has a number fields. The state field
-    is a dictionary representing any state to be restored when the file
-    is opened again.
+    """ Creates and manages a SQLite database with information about files that
+    TuneScope has opened before. Each record (returned as a dict by `get` and
+    `recent`) has the following fields:
+
+    directory : str
+        absolute path of the directory containing the file, excluding the
+        trailing slash (unless it is the root directory)
+    filename : str
+        base name of the file
+    last_opened : datetime
+    title : str
+    artist : str
+    album : str
+    state : dict
+        any state to be restored when the file is opened again
+
+    Records are uniquely identified by (directory, filename).
 
     Parameters
     ----------
@@ -22,40 +34,48 @@ class FileHistory(object):
         c = self._db.cursor()
         c.execute('''
             CREATE TABLE IF NOT EXISTS file_history (
-                file_path TEXT PRIMARY KEY,
+                directory TEXT,
+                filename TEXT,
                 last_opened TIMESTAMP,
                 title TEXT,
                 artist TEXT,
                 album TEXT,
-                state TEXT)
+                state TEXT,
+                PRIMARY KEY (directory, filename)
+            )
             ''')
 
     def update(self,
-               file_path=None,
+               directory=None,
+               filename=None,
                last_opened=None,
                title=None,
                artist=None,
                album=None,
                state=None):
-        """ Inserts or replaces a record identified by `file_path`. """
+        """ Insert or replace a record identified by (directory, filename) """
         state = json.dumps(state)
         c = self._db.cursor()
         c.execute('''
             INSERT OR REPLACE INTO file_history (
-                file_path,
+                directory,
+                filename,
                 last_opened,
                 title,
                 artist,
                 album,
                 state)
-            VALUES (?,?,?,?,?,?)
-            ''', (file_path, last_opened, title, artist, album, state))
+            VALUES (?,?,?,?,?,?,?)
+            ''', (directory, filename, last_opened, title, artist, album, state))
         self._db.commit()
 
-    def get(self, file_path):
-        """ Retrives a record by `file_path`, returning None for non-exisent records. """
+    def get(self, directory, filename):
+        """ Retrieve a record by (directory, filename), returning None for
+        non-existent records. """
         c = self._db.cursor()
-        c.execute('SELECT * FROM file_history WHERE file_path=?', (file_path,))
+        c.execute(
+            'SELECT * FROM file_history WHERE directory = ? AND filename = ?',
+            (directory, filename))
         record = c.fetchone()
         if record is None:
             return None
@@ -69,7 +89,7 @@ class FileHistory(object):
         time stamp. Excludes state dictionary. """
         c = self._db.cursor()
         c.execute('''
-            SELECT file_path, last_opened, title, artist, album
+            SELECT directory, filename, last_opened, title, artist, album
             FROM file_history
             ORDER BY last_opened DESC
             LIMIT ?

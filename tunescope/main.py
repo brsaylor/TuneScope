@@ -170,7 +170,7 @@ class MainWindow(Widget):
             btn.title = record['title']
             btn.artist = record['artist']
             btn.album = record['album']
-            btn.file_path = record['file_path']
+            btn.file_path = os.path.join(record['directory'], record['filename'])
             btn.last = i == len(records) - 1
             btn.bind(on_press=lambda btn: dropdown.select(btn.file_path))
             dropdown.add_widget(btn)
@@ -245,15 +245,17 @@ class MainWindow(Widget):
             self.player.state = {}
 
     def _load_state(self):
-        record = self._file_history.get(self.player.file_path)
+        record = self._file_history.get(*os.path.split(self.player.file_path))
         if record and 'state' in record:
             self.state = record['state']
         else:
             self.state = {}
 
     def _save_state(self):
+        directory, filename = os.path.split(self.player.file_path)
         self._file_history.update(
-            file_path=self.player.file_path,
+            directory=directory,
+            filename=filename,
             last_opened=self._file_opened_time,
             title=self.player.title,
             artist=self.player.artist,
