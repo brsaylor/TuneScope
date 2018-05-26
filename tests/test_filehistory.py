@@ -78,3 +78,28 @@ def test_update_existing_record(db_path):
     record2_out = filehistory.get('/music', 'tune2')
     assert record1_out == record1
     assert record2_out == record2
+
+
+def test_find_by_filename(db_path):
+    filehistory = FileHistory(db_path)
+    records = [
+        create_test_record('/dir1/file1', 1),
+        create_test_record('/dir2/file1', 2),
+        create_test_record('/dir3/file2', 3),
+        create_test_record('/dir4/file2', 4),
+    ]
+    for record in records:
+        filehistory.update(**record)
+
+    records_out = filehistory.find_by_filename('nonsense', 3)
+    assert records_out == []
+
+    expected_records_out = [records[1], records[0]]
+    del expected_records_out[0]['state']
+    del expected_records_out[1]['state']
+
+    records_out = filehistory.find_by_filename('file1', 1)
+    assert records_out == expected_records_out[:1]
+
+    records_out = filehistory.find_by_filename('file1', 3)
+    assert records_out == expected_records_out

@@ -52,7 +52,7 @@ class FileHistory(object):
                title=None,
                artist=None,
                album=None,
-               state=None):
+               state={}):
         """ Insert or replace a record identified by (directory, filename) """
         state = json.dumps(state)
         c = self._db.cursor()
@@ -83,6 +83,20 @@ class FileHistory(object):
         record = dict(record)
         record['state'] = json.loads(record['state'])
         return record
+
+    def find_by_filename(self, filename, limit):
+        """ Return the `limit` most recent records with the given `filename`,
+        excluding the state dictionary """
+        c = self._db.cursor()
+        c.execute('''
+            SELECT directory, filename, last_opened, title, artist, album
+            FROM file_history
+            WHERE filename = ?
+            ORDER BY last_opened DESC
+            LIMIT ?
+            ''', (filename, limit))
+        records = c.fetchall()
+        return [dict(record) for record in records]
 
     def recent(self, limit):
         """ Returns the `limit` most recent records based on `last_opened`
