@@ -65,6 +65,8 @@ class MainWindow(Widget):
         db_path = os.path.join(_DATA_DIR, 'file_history.sqlite3')
         self._file_history = FileHistory(db_path)
 
+        self._open_dialog_path = os.path.join(os.path.expanduser('~'), 'Music')
+
     def _bind_selection_marker(self, property_name):
         """ Connect the selection marker with the corresponding selection bound property """
         marker = self.ids[property_name + '_marker']
@@ -102,7 +104,7 @@ class MainWindow(Widget):
 
     def show_open_dialog(self):
         selected_files = plyer.filechooser.open_file(
-            path=os.path.join(os.path.expanduser('~'), 'Music'),
+            path=self._open_dialog_path,
             multiple=False,
             preview=True,
             title="Open media file")
@@ -115,6 +117,7 @@ class MainWindow(Widget):
         if self.player.file_path is not None:
             self._save_state()
         filename = os.path.abspath(filename)
+        self._open_dialog_path = os.path.dirname(filename)
 
         try:
             self.player.open_file(filename)
