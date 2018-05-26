@@ -243,7 +243,10 @@ class MainWindow(Widget):
 
     def _load_state(self):
         record = self._file_history.get(self.player.file_path)
-        self.state = record['state']
+        if record and 'state' in record:
+            self.state = record['state']
+        else:
+            self.state = {}
 
     def _save_state(self):
         self._file_history.update(
