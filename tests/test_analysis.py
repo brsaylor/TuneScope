@@ -22,6 +22,7 @@ def A440_sine_wave(tmpdir_factory):
     return sine
 
 
+@pytest.mark.xfail(reason="pitch analysis disabled for now")
 @pytest.mark.parametrize(
     ['window_size', 'hop_size'],
     [
