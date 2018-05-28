@@ -5,6 +5,7 @@ import platform
 import datetime
 import math
 
+from kivy import Logger
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -245,11 +246,21 @@ class MainWindow(Widget):
             self.player.state = {}
 
     def _load_state(self):
-        record = self._file_history.get(*os.path.split(self.player.file_path))
-        if record and 'state' in record:
-            self.state = record['state']
-        else:
+        directory, filename = os.path.split(self.player.file_path)
+        record = self._file_history.get(directory, filename)
+
+        if record is None:
             self.state = {}
+            return
+
+        self.state = record.get('state', {})
+
+        if record['directory'] != directory or record['filename'] != filename:
+            Logger.info("_load_state: file moved:")
+            Logger.info("  {} => {}".format(
+                os.path.join(record['directory'], record['filename']),
+                os.path.join(directory, filename)))
+            self._file_history.delete(record['directory'], record['filename'])
 
     def _save_state(self):
         directory, filename = os.path.split(self.player.file_path)

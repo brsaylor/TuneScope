@@ -1,5 +1,5 @@
 import datetime
-import os.path
+import os
 import random
 
 import pytest
@@ -114,3 +114,21 @@ def test_delete(db_path):
     filehistory.delete('/dir', 'file1')
     del record2['state']
     assert filehistory.recent(10) == [record2]
+
+
+def test_get_moved_file(db_path, tmpdir_factory):
+    filehistory = FileHistory(db_path)
+    directory = str(tmpdir_factory.mktemp('tunez'))
+    filename_orig = 'file1'
+    filepath_orig = os.path.join(directory, filename_orig)
+    with open(filepath_orig, 'w') as f:
+        f.write('some data')
+    record = create_test_record(filepath_orig, 1)
+    filehistory.update(**record)
+
+    filename_new = 'file1_renamed'
+    filepath_new = os.path.join(directory, filename_new)
+    os.rename(filepath_orig, filepath_new)
+    record_out = filehistory.get(directory, filename_new)
+
+    assert record_out == record
