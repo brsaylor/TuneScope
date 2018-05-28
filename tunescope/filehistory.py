@@ -83,7 +83,7 @@ class FileHistory(object):
         isn't found, try to find a match by fingerprint instead (the caller
         should check for this condition by looking at the directory and filename
         of the returned record). Return None if no match is found. """
-        
+
         record = self._get_by_file_path(directory, filename)
         if record is None:
             record = self._get_by_fingerprint(directory, filename)

@@ -55,14 +55,13 @@ class Player(EventDispatcher):
 
         self._position_sync_interval = None  # ClockEvent for position sync
 
-    def open_file(self, filename):
+    def open_file(self, file_path):
         """ Open an audio file"""
-        self._filepath = filename
         if self._audio_output is not None:
             self._audio_output.close()
 
         # Build audio pipeline
-        self._audio_decoder = AudioDecoder(filename)
+        self._audio_decoder = AudioDecoder(file_path)
         self._decoder_buffer = DecoderBuffer(self._audio_decoder, 4096)
         self._looper = Looper(self._decoder_buffer)
         self._time_stretcher = TimeStretcher(self._looper)
@@ -78,17 +77,20 @@ class Player(EventDispatcher):
         self.speed = 1
         self.pitch = 0
 
-        self.load_metadata()
+        self.load_metadata(file_path)
 
-    def load_metadata(self):
+        # Success. Update self.file_path
+        self._filepath = file_path
+
+    def load_metadata(self, file_path):
         """" Populate the player's metadata properties from the tags found in the file and/or the user's iTunes library. """
-        metadata = AudioMetadata(self._filepath)
+        metadata = AudioMetadata(file_path)
         self.duration = metadata.duration
         if metadata.title == '':
             if self._itunes_library is not None:
-                metadata = self._itunes_library.get_metadata_by_filepath(self._filepath)
+                metadata = self._itunes_library.get_metadata_by_filepath(file_path)
             else:
-                self.title = os.path.basename(self._filepath)
+                self.title = os.path.basename(file_path)
                 library_filepath = ITunesLibrary.find_itunes_library()
                 if library_filepath:
                     self.dispatch('on_itunes_library_found')
