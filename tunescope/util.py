@@ -1,5 +1,6 @@
 import os.path
 
+
 def bind_properties(properties, callback):
     """ Bind multiple properties to a callback.
 
@@ -21,5 +22,12 @@ def bind_properties(properties, callback):
         for prop_name in prop_names:
             dispatcher.bind(**{prop_name: bound_callback})
 
+
 def get_data_dir():
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+
+
+def format_time(t):
+    minutes = int(t) // 60
+    seconds = t - 60 * minutes
+    return "{}:{:05.2f}".format(minutes, seconds)
