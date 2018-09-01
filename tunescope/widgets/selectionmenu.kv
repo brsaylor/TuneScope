@@ -1,5 +1,7 @@
 #:import Icon tunescope.widgets.Icon
 
+#:set ROW_HEIGHT sp(35)
+
 <SelectionMenu>:
     GridLayout:
         id: grid
@@ -30,16 +32,20 @@
             on_release: root.on_header_press(*args)
 
 <Header>:
-    text: ''
-    orientation: 'horizontal'
-    sort_by: ''
+    height: ROW_HEIGHT
     is_sorted: False
+    orientation: 'horizontal'
     reverse_sort: False
+    size_hint_y: None
+    sort_by: ''
+    text: ''
+
     canvas.after:
         Color:
             rgb: 1,1,1
         Line:
             points: self.x, self.y, self.x, self.y + self.height, self.x + self.width, self.y + self.height, self.x + self.width, self.y, self.x, self.y
+
     Label:
         text: root.text
     Icon:
@@ -47,7 +53,10 @@
         name: 'ios-arrow-down' if root.reverse_sort else 'ios-arrow-up'
 
 <Cell>:
-    text: ''
+    height: ROW_HEIGHT
     orientation: 'horizontal'
+    size_hint_y: None
+    text: ''
+
     Label:
         text: root.text

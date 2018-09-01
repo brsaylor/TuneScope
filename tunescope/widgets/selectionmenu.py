@@ -1,17 +1,14 @@
 import os.path
-import pdb
 
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.label import Label
-from kivy.uix.modalview import ModalView
-from kivy.uix.widget import Widget
 from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 
 from ..selections import SelectionList
 from ..widgets import Icon
+
 
 class SelectionMenu(BoxLayout):
     selection_list = ObjectProperty(SelectionList(), rebind=True)
@@ -46,9 +43,7 @@ class SelectionMenu(BoxLayout):
             self.cells[i][2].text = str(s.start)
             self.cells[i][3].text = str(s.end)
 
-
     def on_header_press(self, header):
-        print(header.sort_by)
         if not header.sort_by:
             return
 
@@ -67,12 +62,14 @@ class SelectionMenu(BoxLayout):
         self.selection_list.delete(selection)
         self.render_cells()
 
+
 class Header(ButtonBehavior, BoxLayout):
     pass
 
 
 class Cell(BoxLayout):
     pass
+
 
 class TrashIcon(Icon):
     selection_index = NumericProperty()
