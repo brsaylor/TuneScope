@@ -13,6 +13,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.factory import Factory
+from kivy.metrics import dp
 from kivy.properties import (
     BooleanProperty,
     NumericProperty,
@@ -192,10 +193,12 @@ class MainWindow(Widget):
         dropdown.bind(on_select=on_select)
 
     def show_selection_menu(self):
+        padding = dp(10)
         modal = ModalView(
             size_hint=(0.7, None),
             anchor_x='left',
             anchor_y='top',
+            padding=padding,
         )
         menu = SelectionMenu(
             dismiss=modal.dismiss,
@@ -203,9 +206,8 @@ class MainWindow(Widget):
         )
 
         def on_menu_min_height(menu_, min_height):
-            modal.height = min_height
+            modal.height = min_height + 2 * padding
 
-        modal.height = menu.min_height
         menu.bind(min_height=on_menu_min_height)
 
         modal.add_widget(menu)
