@@ -192,11 +192,22 @@ class MainWindow(Widget):
         dropdown.bind(on_select=on_select)
 
     def show_selection_menu(self):
-        modal = ModalView(size_hint=(0.5, 1))
+        modal = ModalView(
+            size_hint=(0.7, None),
+            anchor_x='left',
+            anchor_y='top',
+        )
         menu = SelectionMenu(
             dismiss=modal.dismiss,
             selection_list=self.selection_list
         )
+
+        def on_menu_min_height(menu_, min_height):
+            modal.height = min_height
+
+        modal.height = menu.min_height
+        menu.bind(min_height=on_menu_min_height)
+
         modal.add_widget(menu)
         modal.open()
 

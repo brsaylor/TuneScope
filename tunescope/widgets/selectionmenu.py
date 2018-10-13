@@ -14,6 +14,7 @@ from ..widgets import Icon
 class SelectionMenu(BoxLayout):
     selection_list = ObjectProperty(SelectionList(), rebind=True)
     sorted_by = StringProperty(None, allownone=True)
+    min_height = NumericProperty(0)
 
     def __init__(self, dismiss=None, **kwargs):
         self.cells = []
@@ -46,6 +47,8 @@ class SelectionMenu(BoxLayout):
             self.cells[i][1].text = s.name or 'untitled'
             self.cells[i][2].text = format_time(s.start)
             self.cells[i][3].text = format_time(s.end)
+
+        self.min_height = self.ids.header0.height + num_selections * self.cells[0][0].height
 
     def on_header_press(self, header):
         if not header.sort_by:

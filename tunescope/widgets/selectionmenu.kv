@@ -3,11 +3,15 @@
 #:set ROW_HEIGHT sp(35)
 
 <SelectionMenu>:
+    size_hint_y: None
+
     GridLayout:
         id: grid
         cols: 5
+        size_hint_y: None
 
         Header:
+            id: header0
             sort_by: 'number'
             is_sorted: self.sort_by == root.sorted_by
             text: '#'
