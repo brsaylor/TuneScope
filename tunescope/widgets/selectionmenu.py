@@ -48,6 +48,9 @@ class SelectionMenu(BoxLayout):
             self.cells[i][2].text = format_time(s.start)
             self.cells[i][3].text = format_time(s.end)
 
+            for cell in self.cells[i]:
+                cell.is_current_selection = s == self.selection_list.current
+
         self.min_height = self.ids.header0.height + num_selections * self.cells[0][0].height
 
     def on_header_press(self, header):

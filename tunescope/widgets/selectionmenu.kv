@@ -58,9 +58,11 @@
 
 <Cell>:
     height: ROW_HEIGHT
+    is_current_selection: False
     orientation: 'horizontal'
     size_hint_y: None
     text: ''
 
     Label:
         text: root.text
+        bold: root.is_current_selection
