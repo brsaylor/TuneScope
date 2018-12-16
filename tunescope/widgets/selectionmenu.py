@@ -1,4 +1,5 @@
 import os.path
+import sys
 
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
@@ -90,6 +91,10 @@ class TrashIcon(Icon):
     selection_index = NumericProperty()
 
 
-Builder.load_file(os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'selectionmenu.kv'))
+if getattr(sys, 'frozen', False):
+    # Running in PyInstaller bundle
+    kv_dir = os.path.join(sys._MEIPASS, 'widgets')
+else:
+    kv_dir = os.path.dirname(os.path.realpath(__file__))
+
+Builder.load_file(os.path.join(kv_dir, 'selectionmenu.kv'))

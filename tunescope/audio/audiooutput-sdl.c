@@ -1,7 +1,7 @@
 // This file encapsulates all the SDL-aware code for the AudioOutput class.
 
 #include <stdio.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 // Requested number of samples for the audio output buffer
 #define BLOCK_SIZE 4096

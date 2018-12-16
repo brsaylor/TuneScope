@@ -1,4 +1,5 @@
 import os.path
+import sys
 
 
 def bind_properties(properties, callback):
@@ -24,7 +25,11 @@ def bind_properties(properties, callback):
 
 
 def get_data_dir():
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    if getattr(sys, 'frozen', False):
+        # Running in PyInstaller bundle
+        return os.path.join(sys._MEIPASS, 'data')
+    else:
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
 
 
 def format_time(t):
