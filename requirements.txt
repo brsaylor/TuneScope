@@ -3,7 +3,7 @@
 Cython==0.25.2
 #Kivy==1.10.0
 -e git+https://github.com/kivy/kivy.git#egg=Kivy
-aubio==0.4.5
+aubio==0.4.7
 mercurial
 mock==2.0.0
 numpy==1.12.1

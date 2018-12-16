@@ -62,7 +62,7 @@ extensions = [
 setup(
     name='TuneScope',
 
-    version='0.0.1a0',
+    version='0.1',
 
     description='An application for tune learning',
     long_description=long_description,
