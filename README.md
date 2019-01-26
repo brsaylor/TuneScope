@@ -16,11 +16,11 @@ tuning, and loop selections.
 1. Install [Homebrew](http://brew.sh/)
 1. Install GStreamer (this can take a long time):
     ```
-    brew reinstall --build-bottle --with-libvorbis gstreamer gst-plugins-{base,good,bad,ugly}
+    brew reinstall --build-from-source gstreamer gst-plugins-{base,good,bad,ugly}
     ```
 1. Install SDL:
     ```
-    brew reinstall --build-bottle sdl2 sdl2_image sdl2_ttf sdl2_mixer
+    brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
     ```
 1. Install current version of Python 2:
     ```
