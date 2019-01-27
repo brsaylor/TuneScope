@@ -2,6 +2,9 @@
 Common audio back end (i.e. GStreamer) code
 """
 
+import os
+import sys
+
 
 cdef extern from "<gst/gst.h>":
     void gst_init (int *argc, char **argv[])
@@ -22,6 +25,11 @@ cdef GMainLoop *_glib_main_loop = NULL
 
 cdef initialize_if_not_initialized():
     """ Call GStreamer and GLib initialization procedures if necessary. """
+
+    if getattr(sys, 'frozen', False):
+        os.environ['GST_PLUGIN_PATH'] = os.path.join(sys._MEIPASS, 'gst-plugins')
+
+
     global _gstreamer_initialized, _glib_main_loop
     if not _gstreamer_initialized:
         gst_init(NULL, NULL)
