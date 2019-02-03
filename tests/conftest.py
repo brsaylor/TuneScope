@@ -5,6 +5,11 @@ pytest automatically makes these available in all test modules.
 
 import wave
 
+# kivy parses sys.argv on import, breaking tests when we pass args to pytest.
+# Hack around this by clearing the args.
+import sys
+sys.argv = sys.argv[:1]
+
 import pytest
 import numpy as np
 
