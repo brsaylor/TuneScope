@@ -41,9 +41,9 @@ tuning, and loop selections.
     3. `mkvirtualenv -a . -p /usr/local/bin/python2 tunescope`
 1. Install Python dependencies:
     ```
-    pip install Cython==0.25.2
-    pip install numpy==1.12.1
-    pip install -r requirements.txt	
+    pip install Cython==0.26.1
+    pip install numpy==1.16.1
+    pip install -r requirements.txt --no-binary kivy
     ```
 1. Download and build Rubber Band Library:
     ```
