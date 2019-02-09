@@ -7,8 +7,6 @@ from tunescope.audio import audiooutput
 from tunescope.audio import AudioOutput
 from test_doubles import FakeAudioSource
 
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
-
 
 @pytest.fixture()
 def sdl_output_file(tmpdir):
@@ -20,18 +18,11 @@ def sdl_output_file(tmpdir):
     os.environ['SDL_AUDIODRIVER'] = 'disk'
     os.environ['SDL_DISKAUDIODELAY'] = '0'
     os.environ['SDL_DISKAUDIOFILE'] = filepath
-    audiooutput.reinitialize()
 
-    yield filepath
-
-    # Teardown
-    os.environ['SDL_AUDIODRIVER'] = 'dummy'
-    del os.environ['SDL_DISKAUDIODELAY']
-    del os.environ['SDL_DISKAUDIOFILE']
-    audiooutput.reinitialize()
+    return filepath
 
 
-def test_source_read_called():
+def test_source_read_called(sdl_output_file):
     fake_source = FakeAudioSource(2, 44100, np.arange(5))
     output = AudioOutput(fake_source)
     output.play()
@@ -40,7 +31,7 @@ def test_source_read_called():
     assert fake_source.read_called
 
 
-def test_close_while_playing():
+def test_close_while_playing(sdl_output_file):
     fake_source = FakeAudioSource(2, 44100, np.arange(5))
     output = AudioOutput(fake_source)
     output.play()
@@ -66,7 +57,7 @@ def test_samples_written(sdl_output_file):
     assert np.all(samples_written_trimmed == samples)
 
 
-def test_two_simultaneous_outputs():
+def test_two_simultaneous_outputs(sdl_output_file):
     output1 = AudioOutput(FakeAudioSource(2, 44100, np.arange(5)))
     output2 = AudioOutput(FakeAudioSource(2, 44100, np.arange(5)))
     output1.play()
