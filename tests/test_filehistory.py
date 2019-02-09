@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import datetime
 import os
 import random
@@ -32,7 +34,7 @@ def create_test_record(file_path, second, incl_state=True):
 
 
 def test_update_get(db_path):
-    file_path = '/music/tune.mp3'
+    file_path = u'/music/A Bhean Udaí Thall.mp3'
     filehistory = FileHistory(db_path)
     record = create_test_record(file_path, 1)
     filehistory.update(**record)

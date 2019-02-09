@@ -36,3 +36,12 @@ def format_time(t):
     minutes = int(t) // 60
     seconds = t - 60 * minutes
     return "{}:{:05.2f}".format(minutes, seconds)
+
+
+def decode_file_path(file_path):
+    """ Decode the given file path string and return a unicode string. No-op if
+    file_path is already unicode """
+    # FIXME: assumes python2
+    if isinstance(file_path, unicode):
+        return file_path
+    return unicode(file_path, sys.getfilesystemencoding())

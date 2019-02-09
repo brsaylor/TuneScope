@@ -30,7 +30,7 @@ from tunescope.filehistory import FileHistory
 from tunescope.player import Player
 from tunescope.selections import SelectionList
 from tunescope.theme import Theme
-from tunescope.util import bind_properties
+from tunescope.util import bind_properties, decode_file_path
 from tunescope.widgets.selectionmenu import SelectionMenu
 
 
@@ -116,14 +116,14 @@ class MainWindow(Widget):
             self.open_file(selected_files[0])
 
     @_async_engine.async
-    def open_file(self, filename):
+    def open_file(self, file_path):
         if self.player.file_path is not None:
             self._save_state()
-        filename = os.path.abspath(filename)
-        self._open_dialog_path = os.path.dirname(filename)
+        file_path = os.path.abspath(decode_file_path(file_path))
+        self._open_dialog_path = os.path.dirname(file_path)
 
         try:
-            self.player.open_file(filename)
+            self.player.open_file(file_path)
         except IOError as e:
             popup = Factory.ErrorDialog(title='Error opening file')
             popup.message = e.message
@@ -247,7 +247,7 @@ class MainWindow(Widget):
 
         if record['directory'] != directory or record['filename'] != filename:
             Logger.info("_load_state: file moved:")
-            Logger.info("  {} => {}".format(
+            Logger.info(u"  {} => {}".format(
                 os.path.join(record['directory'], record['filename']),
                 os.path.join(directory, filename)))
             self._file_history.delete(record['directory'], record['filename'])
@@ -264,8 +264,8 @@ class MainWindow(Widget):
             state=self.state,
         )
 
-    def on_dropfile(self, window, filename):
-        self.open_file(filename)
+    def on_dropfile(self, window, file_path):
+        self.open_file(file_path)
 
     def on_itunes_library_found(self, window):
         popup = Factory.ITunesConfirmationPopup()
@@ -318,6 +318,6 @@ if __name__ == '__main__':
         os.makedirs(_DATA_DIR)
     tunescope_app = TuneScopeApp()
     if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        Clock.schedule_once(lambda dt: tunescope_app.root.open_file(filename), 0)
+        file_path = sys.argv[1]
+        Clock.schedule_once(lambda dt: tunescope_app.root.open_file(file_path), 0)
     tunescope_app.run()
