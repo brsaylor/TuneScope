@@ -1,0 +1,13 @@
+{
+    "background_alt_color": "#2d3138",
+    "background_color": "#23272e",
+    "text_color": "#dfdfe1",
+    "text_button_color": "#dfdfe1",
+    "button_background_color": "#54575d",
+    "button_text_color": "#feffff",
+    "icon_color": "#dfdfe1",
+    "pitch_plot_background_color": "#202023",
+    "pitch_plot_line_color": "#2aa198",
+    "progress_background_color": "#2d3138",
+    "progress_text_color": "#dfdfe1"
+}

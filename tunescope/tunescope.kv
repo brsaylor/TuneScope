@@ -102,19 +102,19 @@
                     anchor_x: 'center'
                     anchor_y: 'center'
                     width: scroll_view.width + pitch_plot.width
-                    height: pitch_plot.height + dp(10)
+                    height: pitch_plot.height
                     size_hint: None, None
                     Spectrogram:
                         id: spectrogram
                         size_hint: None, None
                         width: app.player.duration * dp(120) * horizontal_zoom.value
-                        height: scroll_view.height * vertical_zoom.value - dp(10)
+                        height: scroll_view.height * vertical_zoom.value
                     PitchPlot:
                         id: pitch_plot
                         line_color: app.theme.pitch_plot_line_color
                         size_hint: None, None
                         width: app.player.duration * dp(120) * horizontal_zoom.value
-                        height: scroll_view.height * vertical_zoom.value - dp(10)
+                        height: scroll_view.height * vertical_zoom.value
 
             SelectionMarker:
                 id: selection_start_marker
@@ -138,12 +138,21 @@
                 name: 'ios-pause' if app.player.playing else 'ios-play'
                 on_release: app.player.playing = not app.player.playing
                 pos_hint: {'center_y': 0.5}
-                font_size: dp(42)
+                font_size: dp(48)
+                outline_color: 0, 0, 0
+                outline_width: dp(1)
+ 
+            Spacer:
+                width: 10
+
             Icon:
-                name: 'loop'
-                font_size: dp(32)
-                opacity: 1 if app.player.looping_enabled else 0.5
-                on_release: app.player.looping_enabled = not app.player.looping_enabled
+                name: 'ios-skipbackward'
+                font_size: dp(24)
+                on_release: app.player.seek(0)
+
+            Spacer:
+                width: 10
+
             Label:
                 text: "{} / {}".format(format_time(app.player.position), format_time(app.player.duration))
                 font_name: 'DejaVuSans'
@@ -151,22 +160,32 @@
                 size: self.texture_size
 
             Spacer:
+                size_hint: 1, 1
 
-            VerticalSeparator:
+            BoxLayout:
+                orientation: 'vertical'
 
-            ZoomIcon:
-                zoom_direction: 'horizontal'
-            Slider:
-                id: horizontal_zoom
-                range: 1, 20
+                BoxLayout:
+                    orientation: 'horizontal'
+                    ZoomIcon:
+                        zoom_direction: 'horizontal'
+                    Slider:
+                        id: horizontal_zoom
+                        range: 0.2, 10
+                        step: 0.01
+                        value: 1
+                        cursor_size: dp(12), dp(12)
 
-            VerticalSeparator:
-
-            ZoomIcon:
-                zoom_direction: 'vertical'
-            Slider:
-                id: vertical_zoom
-                range: 1, 10
+                BoxLayout:
+                    orientation: 'horizontal'
+                    ZoomIcon:
+                        zoom_direction: 'vertical'
+                    Slider:
+                        id: vertical_zoom
+                        range: 1, 10
+                        step: 0.01
+                        value: 1
+                        cursor_size: dp(12), dp(12)
 
 
         #
@@ -184,11 +203,20 @@
             Label:
                 size_hint_x: None
                 size: self.texture_size
-                markup: True
-                text: "[b]Selection #{:d}[/b]".format(root.selection_list.current.number)
+                text: "Selection #{:d}".format(root.selection_list.current.number)
+                bold: True
+            Icon:
+                name: 'loop'
+                color: app.theme.icon_color if app.player.looping_enabled else app.theme.background_color
+                outline_color: app.theme.icon_color
+                outline_width: 0 if app.player.looping_enabled else 1
+                font_size: dp(24)
+                size_hint_x: None
+                size: dp(24), self.texture_size[1]
+                on_release: app.player.looping_enabled = not app.player.looping_enabled
 
-            Spacer:
-                width: dp(10)
+            # Spacer:
+            #    width: dp(10)
 
             Icon:
                 name: 'plus-circled'
@@ -252,33 +280,44 @@
         # Speed control
         Toolbar:
             Label:
-                text: "Speed"
+                text: "Speed:"
+                bold: True
                 size_hint_x: None
                 width: self.texture_size[0]
+            Label:
+                text: "{:0.0f}%".format(app.player.speed * 100)
+                font_name: 'DejaVuSans'
+                size_hint_x: None
+                width: max(self.texture_size[0], dp(60))
+                halign: 'right'
             Slider:
                 value: app.player.speed
                 on_value: app.player.speed = self.value
                 range: Player.speed.bounds
                 step: 0.01
-            Label:
-                text: "{:0.2f}".format(app.player.speed)
-                size_hint_x: None
 
 
         # Pitch controls
         Toolbar:
+            alt_color: True
             Label:
-                text: "Transpose"
+                text: "Transpose:"
+                bold: True
                 size_hint_x: None
                 width: self.texture_size[0]
+            Label:
+                text: '{:+d}'.format(app.player.transpose)
+                font_name: 'DejaVuSans'
+                size_hint_x: None
+                width: max(self.texture_size[0], dp(30))
+            Label:
+                text: 'semitone' if abs(app.player.transpose) == 1 else 'semitones'
+                size_hint_x: None
+                width: max(self.texture_size[0], dp(80))
             Icon:
                 name: 'android-arrow-dropdown-circle'
                 on_release: app.player.increment_transpose(-1)
                 font_size: dp(24)
-            Label:
-                text: '{:+d}'.format(app.player.transpose)
-                size_hint_x: None
-                width: dp(32)
             Icon:
                 name: 'android-arrow-dropup-circle'
                 on_press: app.player.increment_transpose(1)
@@ -287,16 +326,24 @@
             VerticalSeparator:
 
             Label:
-                text: "Tuning"
+                text: "Tuning:"
+                bold: True
                 size_hint_x: None
                 width: self.texture_size[0]
+            Label:
+                text: '{:+d}'.format(int(round(app.player.tuning)))
+                font_name: 'DejaVuSans'
+                size_hint_x: None
+                width: max(self.texture_size[0], dp(30))
+            Label:
+                text: 'cent' if abs(app.player.tuning) == 1 else 'cents'
+                size_hint_x: None
+                width: max(self.texture_size[0], dp(40))
             Slider:
                 value: app.player.tuning
                 on_value: app.player.tuning = self.value
                 range: Player.tuning.bounds
-            Label:
-                text: '{:+d}'.format(int(round(app.player.tuning)))
-                size_hint_x: None
+                step: 1
 
 
 <Toolbar@BoxLayout>:
@@ -317,12 +364,12 @@
 
 <VerticalSeparator@Widget>:
     size_hint_x: None
-    width: dp(1)
+    width: dp(16)
     canvas:
         Color:
             rgba: 1, 1, 1, 0.5
         Line:
-            points: self.x, self.y, self.x, self.y + self.height
+            points: self.x + self.width / 2, self.y, self.x + self.width / 2, self.y + self.height
 
 
 <Icon>:
@@ -413,11 +460,11 @@
     Icon:
         id: icon
         name: 'ios-search-strong'
-        font_size: dp(24)
+        font_size: dp(16)
     Label:
         id: label
         font_name: 'DejaVuSans'
-        font_size: dp(24)
+        font_size: dp(16)
         width: self.texture_size[0]
         size_hint_x: None
         text: u'\u2194' if root.zoom_direction == 'horizontal' else u'\u2195'

@@ -14,11 +14,11 @@
    viewBox="0 0 5 9.9999996"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.1 r"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
    sodipodi:docname="selection-marker.svg"
-   inkscape:export-filename="/Users/ben/src/TuneScope/tunescope/data/icons/png/play.png"
-   inkscape:export-xdpi="1300.48"
-   inkscape:export-ydpi="1300.48">
+   inkscape:export-filename="/Users/ben/src/TuneScope/tunescope/data/icons/png/selection-marker.png"
+   inkscape:export-xdpi="1215.9399"
+   inkscape:export-ydpi="1215.9399">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -38,8 +38,8 @@
      inkscape:pagecheckerboard="true"
      inkscape:window-width="1440"
      inkscape:window-height="855"
-     inkscape:window-x="134"
-     inkscape:window-y="23"
+     inkscape:window-x="41"
+     inkscape:window-y="0"
      inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
@@ -56,7 +56,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -67,7 +67,7 @@
      transform="translate(0,-287.00002)">
     <path
        sodipodi:type="star"
-       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.78013738;stroke-opacity:0.70202023;stroke-miterlimit:4;stroke-dasharray:none;stroke-linecap:round;stroke-linejoin:miter"
        id="path4509"
        sodipodi:sides="3"
        sodipodi:cx="5"

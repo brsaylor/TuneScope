@@ -27,7 +27,7 @@ class Theme(EventDispatcher):
 
     def __init__(self, **kwargs):
         super(EventDispatcher, self).__init__(**kwargs)
-        self.load_theme(os.path.join(theme_dir, 'solarized-dark.json'))
+        self.load_theme(os.path.join(theme_dir, 'dark.json'))
 
     def load_theme(self, file_path):
         with open(file_path) as f:

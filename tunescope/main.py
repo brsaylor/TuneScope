@@ -56,8 +56,12 @@ class MainWindow(Widget):
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
+
         Window.bind(on_request_close=self.on_request_close)
         Window.bind(on_dropfile=self.on_dropfile)
+
+        self._setup_keyboard()
+
         self.selection_list = SelectionList()
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
         self.player.bind(selection_start=self.on_player_selection_start)
@@ -69,6 +73,20 @@ class MainWindow(Widget):
         self._file_history = FileHistory(db_path)
 
         self._open_dialog_path = os.path.join(os.path.expanduser('~'), 'Music')
+
+    def _setup_keyboard(self):
+        def keyboard_closed():
+            pass
+
+        keyboard = Window.request_keyboard(keyboard_closed, self, 'text')
+
+        def on_key_down(keyboard, keycode, text, modifiers):
+            if self.editing_selection_name:
+                return
+            if keycode[1] == 'spacebar':
+                self.player.playing = not self.player.playing
+
+        keyboard.bind(on_key_down=on_key_down)
 
     def _bind_selection_marker(self, property_name):
         """ Connect the selection marker with the corresponding selection bound property """
