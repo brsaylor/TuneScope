@@ -1,0 +1,27 @@
+[size=24sp]TuneScope[/size]   version {version}
+
+Main author: Ben Saylor
+Contributor: Zia Rauwolf
+[u][ref=github]github.com/brsaylor/TuneScope[/ref][/u]
+
+Built using these fine open source libraries:
+- [u][ref=aubio]aubio[/ref][/u]
+- [u][ref=gstreamer]GStreamer[/ref][/u]
+- [u][ref=kivy]Kivy[/ref][/u]
+- [u][ref=rubberband]Rubber Band Library[/ref][/u]
+and others.
+
+Copyright 2019 Ben Saylor
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see [u][ref=gpl]https://www.gnu.org/licenses/[/ref][/u].

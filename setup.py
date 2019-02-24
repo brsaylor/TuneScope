@@ -1,5 +1,6 @@
 from os import path
 from codecs import open  # To use a consistent encoding
+import json
 
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
@@ -11,6 +12,9 @@ here = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
+
+with open(path.join(here, 'tunescope/data/config.json')) as f:
+    config = json.load(f)
 
 audiobackend_compiler_args = pkgconfig.parse('gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
 audiodecoder_compiler_args = pkgconfig.parse('gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0')
@@ -62,7 +66,7 @@ extensions = [
 setup(
     name='TuneScope',
 
-    version='0.2',
+    version=config['version'],
 
     description='An application for tune learning',
     long_description=long_description,

@@ -37,6 +37,18 @@
                 text: "Recent Files"
                 on_press: root.show_recent_files_menu()
 
+            Spacer:
+                size_hint_x: 1
+
+            TextButton:
+                text: '[u]about[/u]'
+                markup: True
+                size_hint_x: None
+                size: self.texture_size
+                on_press: root.show_about_page()
+
+            Spacer:
+                width: 10
 
         # Media info bar
         Toolbar:

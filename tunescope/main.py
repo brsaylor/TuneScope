@@ -31,6 +31,7 @@ from tunescope.player import Player
 from tunescope.selections import SelectionList
 from tunescope.theme import Theme
 from tunescope.util import bind_properties, decode_file_path
+from tunescope.widgets.aboutpage import AboutPage
 from tunescope.widgets.selectionmenu import SelectionMenu
 
 
@@ -315,6 +316,16 @@ class MainWindow(Widget):
         self.player.close_audio_device()
         return False  # False means go ahead and close the window
 
+    def show_about_page(self):
+        padding = dp(10)
+        modal = ModalView(
+            size_hint=(0.7, 0.7),
+            anchor_x='center',
+            anchor_y='center',
+            padding=padding,
+        )
+        modal.add_widget(AboutPage(dismiss=modal.dismiss))
+        modal.open()
 
 class TuneScopeApp(App):
     """ Kivy application class """

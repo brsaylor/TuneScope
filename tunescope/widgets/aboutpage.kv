@@ -1,0 +1,24 @@
+#:import Icon tunescope.widgets.Icon
+
+<AboutPage>:
+    ScrollView:
+        id: scrollview
+        do_scroll_x: False
+        do_scroll_y: True
+        scroll_type: ['bars', 'content']
+        pos: root.pos
+
+        Label:
+            text: root.text
+            size_hint_y: None
+            size: self.texture_size
+            text_size: scrollview.width - dp(10), None
+            markup: True
+            on_ref_press: root.open_link(args[1])
+
+    Icon:
+        name: 'close'
+        size_hint: None, None
+        size: self.texture_size
+        pos: root.x + root.width - self.width - dp(10), root.y + root.height - self.height - dp(5)
+        on_release: root.dismiss()
