@@ -10,8 +10,14 @@ test: build
 test-debug: build
 	pytest --pdb
 
+.PHONY: licenses
+licenses:
+	pip-licenses --format-json --with-authors --with-urls \
+		--ignore-packages TuneScope \
+		> tunescope/data/licenses/pip-licenses.json
+
 .PHONY: package
-package: build
+package: build licenses
 	cd packaging && \
 	pyinstaller -y --clean --windowed TuneScope.spec && \
 	cd dist && \

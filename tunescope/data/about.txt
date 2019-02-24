@@ -25,3 +25,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see [u][ref=gpl]https://www.gnu.org/licenses/[/ref][/u].
+
+
+[size=24sp]Third-party libraries[/size]
+

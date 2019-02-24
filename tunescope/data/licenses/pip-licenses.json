@@ -1,0 +1,226 @@
+[
+  {
+    "Author": "Robert Bradshaw, Stefan Behnel, Dag Seljebotn, Greg Ewing, et al.", 
+    "License": "Apache", 
+    "Name": "Cython", 
+    "URL": "http://cython.org/", 
+    "Version": "0.26.1"
+  }, 
+  {
+    "Author": "Kivy Team and other contributors", 
+    "License": "MIT", 
+    "Name": "Kivy", 
+    "URL": "http://kivy.org", 
+    "Version": "1.10.1"
+  }, 
+  {
+    "Author": "UNKNOWN", 
+    "License": "MIT", 
+    "Name": "Kivy-Garden", 
+    "URL": "UNKNOWN", 
+    "Version": "0.1.4"
+  }, 
+  {
+    "Author": "Giovanni Bajo, Hartmut Goebel, David Vierra, David Cortesi, Martin Zibricky", 
+    "License": "GPL license with a special exception which allows to use PyInstaller to build and distribute non-free programs (including commercial ones)", 
+    "Name": "PyInstaller", 
+    "URL": "http://www.pyinstaller.org", 
+    "Version": "3.4"
+  }, 
+  {
+    "Author": "Georg Brandl", 
+    "License": "BSD License", 
+    "Name": "Pygments", 
+    "URL": "http://pygments.org/", 
+    "Version": "2.3.1"
+  }, 
+  {
+    "Author": "Ronald Oussoren", 
+    "License": "MIT", 
+    "Name": "altgraph", 
+    "URL": "https://altgraph.readthedocs.io", 
+    "Version": "0.16.1"
+  }, 
+  {
+    "Author": "Roman Haritonov", 
+    "License": "BSD License", 
+    "Name": "async-gui", 
+    "URL": "https://github.com/reclosedev/async_gui", 
+    "Version": "0.1.1"
+  }, 
+  {
+    "Author": "Paul Brossier", 
+    "License": "GNU/GPL version 3", 
+    "Name": "aubio", 
+    "URL": "https://aubio.org/", 
+    "Version": "0.4.8"
+  }, 
+  {
+    "Author": "Kenneth Reitz", 
+    "License": "MPL-2.0", 
+    "Name": "certifi", 
+    "URL": "https://certifi.io/", 
+    "Version": "2018.11.29"
+  }, 
+  {
+    "Author": "Tom X. Tobin", 
+    "License": "MIT", 
+    "Name": "dis3", 
+    "URL": "https://github.com/KeyWeeUsr/python-dis3", 
+    "Version": "0.1.3"
+  }, 
+  {
+    "Author": "docutils-develop list", 
+    "License": "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)", 
+    "Name": "docutils", 
+    "URL": "http://docutils.sourceforge.net/", 
+    "Version": "0.14"
+  }, 
+  {
+    "Author": "Testing Cabal", 
+    "License": "ASL", 
+    "Name": "funcsigs", 
+    "URL": "http://funcsigs.readthedocs.org", 
+    "Version": "1.0.2"
+  }, 
+  {
+    "Author": "Ed Schofield", 
+    "License": "MIT", 
+    "Name": "future", 
+    "URL": "https://python-future.org", 
+    "Version": "0.17.1"
+  }, 
+  {
+    "Author": "Alex Gr\u00f6nholm", 
+    "License": "PSF", 
+    "Name": "futures", 
+    "URL": "https://github.com/agronholm/pythonfutures", 
+    "Version": "3.2.0"
+  }, 
+  {
+    "Author": "Kim Davies", 
+    "License": "BSD-like", 
+    "Name": "idna", 
+    "URL": "https://github.com/kjd/idna", 
+    "Version": "2.8"
+  }, 
+  {
+    "Author": "Ronald Oussoren", 
+    "License": "MIT", 
+    "Name": "macholib", 
+    "URL": "http://bitbucket.org/ronaldoussoren/macholib", 
+    "Version": "1.11"
+  }, 
+  {
+    "Author": "Matt Mackall and many others", 
+    "License": "GNU GPLv2 or any later version", 
+    "Name": "mercurial", 
+    "URL": "https://mercurial-scm.org/", 
+    "Version": "4.9"
+  }, 
+  {
+    "Author": "Testing Cabal", 
+    "License": "UNKNOWN", 
+    "Name": "mock", 
+    "URL": "https://github.com/testing-cabal/mock", 
+    "Version": "2.0.0"
+  }, 
+  {
+    "Author": "Travis E. Oliphant et al.", 
+    "License": "BSD", 
+    "Name": "numpy", 
+    "URL": "https://www.numpy.org", 
+    "Version": "1.16.1"
+  }, 
+  {
+    "Author": "Matthias C. M. Troffaes", 
+    "License": "MIT", 
+    "Name": "pathlib2", 
+    "URL": "https://pypi.python.org/pypi/pathlib2/", 
+    "Version": "2.2.1"
+  }, 
+  {
+    "Author": "OpenStack", 
+    "License": "UNKNOWN", 
+    "Name": "pbr", 
+    "URL": "https://docs.openstack.org/pbr/latest/", 
+    "Version": "5.1.2"
+  }, 
+  {
+    "Author": "Ero Carrera", 
+    "License": "UNKNOWN", 
+    "Name": "pefile", 
+    "URL": "https://github.com/erocarrera/pefile", 
+    "Version": "2018.8.8"
+  }, 
+  {
+    "Author": "Vineet Naik", 
+    "License": "MIT License", 
+    "Name": "pipdeptree", 
+    "URL": "https://github.com/naiquevin/pipdeptree", 
+    "Version": "0.13.2"
+  }, 
+  {
+    "Author": "Matthias Vogelgesang", 
+    "License": "MIT", 
+    "Name": "pkgconfig", 
+    "URL": "http://github.com/matze/pkgconfig", 
+    "Version": "1.2.2"
+  }, 
+  {
+    "Author": "Kivy team", 
+    "License": "Copyright (c) 2010-2015 Kivy Team and other contributors", 
+    "Name": "plyer", 
+    "URL": "https://plyer.readthedocs.org/en/latest/", 
+    "Version": "1.3.0"
+  }, 
+  {
+    "Author": "holger krekel, Ronny Pfannschmidt, Benjamin Peterson and others", 
+    "License": "MIT license", 
+    "Name": "py", 
+    "URL": "http://py.readthedocs.io/", 
+    "Version": "1.7.0"
+  }, 
+  {
+    "Author": "UNKNOWN", 
+    "License": "UNKNOWN", 
+    "Name": "pyobjus", 
+    "URL": "UNKNOWN", 
+    "Version": "1.0"
+  }, 
+  {
+    "Author": "Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others", 
+    "License": "MIT license", 
+    "Name": "pytest", 
+    "URL": "http://pytest.org", 
+    "Version": "3.1.0"
+  }, 
+  {
+    "Author": "Kenneth Reitz", 
+    "License": "Apache 2.0", 
+    "Name": "requests", 
+    "URL": "http://python-requests.org", 
+    "Version": "2.21.0"
+  }, 
+  {
+    "Author": "Ben Hoyt", 
+    "License": "New BSD License", 
+    "Name": "scandir", 
+    "URL": "https://github.com/benhoyt/scandir", 
+    "Version": "1.9.0"
+  }, 
+  {
+    "Author": "Benjamin Peterson", 
+    "License": "MIT", 
+    "Name": "six", 
+    "URL": "https://github.com/benjaminp/six", 
+    "Version": "1.12.0"
+  }, 
+  {
+    "Author": "Andrey Petrov", 
+    "License": "MIT", 
+    "Name": "urllib3", 
+    "URL": "https://urllib3.readthedocs.io/", 
+    "Version": "1.24.1"
+  }
+]
