@@ -15,7 +15,16 @@ package: build
 	cd packaging && \
 	pyinstaller -y --clean --windowed TuneScope.spec && \
 	cd dist && \
-	hdiutil create ./TuneScope.dmg -srcfolder TuneScope.app -ov
+	mkdir -p dmg-root && \
+	mv TuneScope.app dmg-root && \
+	cp -r ../Licenses dmg-root && \
+	create-dmg \
+		--volname "TuneScope Installer" \
+		--window-size 500 500 \
+		--icon-size 100 \
+		--icon "TuneScope.app" 200 100 --icon "Licenses" 100 250 \
+		--app-drop-link 300 250 \
+		TuneScope.dmg dmg-root
 
 .PHONY: clean
 clean:
