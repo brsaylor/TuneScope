@@ -45,3 +45,10 @@ def decode_file_path(file_path):
     if isinstance(file_path, unicode):
         return file_path
     return unicode(file_path, sys.getfilesystemencoding())
+
+
+def encode_file_path(file_path):
+    """ Inverse of decode_file_path """
+    if not isinstance(file_path, unicode):
+        return file_path
+    return file_path.encode(sys.getfilesystemencoding())

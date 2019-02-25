@@ -4,6 +4,7 @@ import numpy as np
 cimport numpy as np
 
 from . cimport audiobackend
+from tunescope.util import encode_file_path
 
 
 cdef extern from "audiodecoder-gst.c":
@@ -40,9 +41,10 @@ cdef class AudioDecoder:
 
     def __cinit__(self, filename):
         if not os.path.isfile(filename):
-            raise IOError("No such file: '{}'".format(filename))
+            raise IOError(u"No such file: '{}'".format(filename))
         audiobackend.initialize_if_not_initialized()
-        self._handle = audiodecoder_gst_new(filename)
+        
+        self._handle = audiodecoder_gst_new(encode_file_path(filename))
 
         cdef char *error = audiodecoder_gst_get_error(self._handle)
         if error:

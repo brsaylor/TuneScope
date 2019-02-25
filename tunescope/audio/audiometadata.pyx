@@ -31,12 +31,12 @@ cdef class AudioMetadata:
 
     def __init__(self, filename):
         if not os.path.isfile(filename):
-            raise IOError("No such file: '{}'".format(filename))
+            raise IOError(u"No such file: '{}'".format(filename))
 
         metadata_struct = audiometadata_gst_read(Path(filename).as_uri())
 
         if metadata_struct == NULL:
-            raise IOError("Error reading metadata from {}".format(filename))
+            raise IOError(u"Error reading metadata from {}".format(filename))
 
         self.duration = metadata_struct.duration
         self.title = _c_string_to_unicode(metadata_struct.title)
