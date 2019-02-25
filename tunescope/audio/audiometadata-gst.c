@@ -5,6 +5,7 @@
 #include <glib.h>
 
 #define TIMEOUT_SECONDS 5
+#define MAX_ATTEMPTS 3
 
 
 typedef struct {
@@ -15,10 +16,7 @@ typedef struct {
 } AudioMetadataStruct;
 
 
-// Read metadata for the file at the given URI, returning NULL in case of an error.
-// The caller should free the returned struct using audiometadata_gst_delete().
-AudioMetadataStruct *audiometadata_gst_read(char *uri)
-{
+AudioMetadataStruct *attempt_read(char *uri) {
     AudioMetadataStruct *metadata = (AudioMetadataStruct *) g_malloc0(sizeof(AudioMetadataStruct));
 
     GError *error = NULL;
@@ -39,6 +37,12 @@ AudioMetadataStruct *audiometadata_gst_read(char *uri)
     }
 
     metadata->duration = ((double) gst_discoverer_info_get_duration(info)) / GST_SECOND;
+    if (metadata->duration <= 0) {
+        g_printerr("gst_discoverer_discover_uri() failed to get duration\n");
+        g_clear_error(&error);
+        g_object_unref(discoverer);
+        return NULL;
+    }
 
     const GstTagList *tags = gst_discoverer_info_get_tags(info);
     gst_tag_list_get_string(tags, "title", &(metadata->title));
@@ -49,6 +53,25 @@ AudioMetadataStruct *audiometadata_gst_read(char *uri)
     g_object_unref(discoverer);
 
     return metadata;
+}
+
+
+// Read metadata for the file at the given URI, returning NULL in case of an error.
+// The caller should free the returned struct using audiometadata_gst_delete().
+AudioMetadataStruct *audiometadata_gst_read(char *uri)
+{
+    AudioMetadataStruct *metadata;
+
+    // GstDiscoverer sometimes reports 0 duration on the first try,
+    // but returns a positive value on a subsequent attempt.
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        metadata = attempt_read(uri);
+        if (metadata) {
+            return metadata;
+        }
+    }
+
+    return NULL;
 }
 
 
