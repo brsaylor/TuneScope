@@ -308,7 +308,7 @@ class MainWindow(Widget):
     def _grant_itunes_library_permission(self, instance):
         self.itunes_confirmation_popup.dismiss()
         self.player.load_itunes_library()
-        self.player.load_metadata()
+        self.player.load_metadata(self.player.file_path)
 
     def on_request_close(self, window):
         if self.player.file_path is not None:
