@@ -64,6 +64,7 @@ class MainWindow(Widget):
         self._setup_keyboard()
 
         self.selection_list = SelectionList()
+        self.selection_list.bind(current=self.on_current_selection)
         self.player.bind(on_itunes_library_found=self.on_itunes_library_found)
         self.player.bind(selection_start=self.on_player_selection_start)
         self.player.bind(selection_end=self.on_player_selection_end)
@@ -293,17 +294,16 @@ class MainWindow(Widget):
         popup.ids.yes_button.bind(on_press=self._grant_itunes_library_permission)
         popup.open()
 
-    def on_selection_index(self, instance, value):
-        selection = self.selections[self.selection_index]
-        self.selection_name = selection['name']
-        self.player.selection_start = selection['start']
-        self.player.selection_end = selection['end']
-
     def on_player_selection_start(self, instance, value):
         self.selection_list.current.start = value
 
     def on_player_selection_end(self, instance, value):
         self.selection_list.current.end = value
+
+    def on_current_selection(self, instance, value):
+        selection = value
+        self.player.selection_start = selection.start
+        self.player.selection_end = selection.end
 
     def _grant_itunes_library_permission(self, instance):
         self.itunes_confirmation_popup.dismiss()
