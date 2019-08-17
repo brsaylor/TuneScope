@@ -87,6 +87,11 @@ class MainWindow(Widget):
                 return
             if keycode[1] == 'spacebar':
                 self.player.playing = not self.player.playing
+            if 'meta' in modifiers and text == 'o':
+                if 'shift' in modifiers:
+                    self.ids.recent_files_button.trigger_action()
+                else:
+                    self.show_open_dialog()
 
         keyboard.bind(on_key_down=on_key_down)
 
