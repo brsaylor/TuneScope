@@ -36,7 +36,6 @@ from tunescope.widgets.aboutpage import AboutPage
 from tunescope.widgets.selectionmenu import SelectionMenu
 
 
-
 _async_engine = KivyEngine()
 
 if platform.system() == 'Darwin':
@@ -94,7 +93,6 @@ class MainWindow(Widget):
                 self.show_open_dialog()
             elif action == 'show_recent_files':
                 self.ids.recent_files_button.trigger_action()
-
 
         keyboard.bind(on_key_down=on_key_down)
 
@@ -335,6 +333,7 @@ class MainWindow(Widget):
         modal.add_widget(AboutPage(dismiss=modal.dismiss))
         modal.open()
 
+
 class TuneScopeApp(App):
     """ Kivy application class """
 
@@ -347,7 +346,6 @@ class TuneScopeApp(App):
         self.player = Player()
         self.theme = Theme()
         return MainWindow()
-
 
 
 if __name__ == '__main__':
