@@ -27,6 +27,7 @@ import plyer
 from tunescope.analysis import analyze
 from tunescope.audio import AudioDecoder, DecoderBuffer
 from tunescope.filehistory import FileHistory
+from tunescope.keyboardshortcuts import keyboard_action
 from tunescope.player import Player
 from tunescope.selections import SelectionList
 from tunescope.theme import Theme
@@ -85,8 +86,13 @@ class MainWindow(Widget):
         def on_key_down(keyboard, keycode, text, modifiers):
             if self.editing_selection_name:
                 return
-            if keycode[1] == 'spacebar':
+            action = keyboard_action(text, modifiers)
+            if action == 'play_pause':
                 self.player.playing = not self.player.playing
+            elif action == 'open_file':
+                self.show_open_dialog()
+            elif action == 'show_recent_files':
+                self.ids.recent_files_button.trigger_action()
 
         keyboard.bind(on_key_down=on_key_down)
 
@@ -327,6 +333,7 @@ class MainWindow(Widget):
         modal.add_widget(AboutPage(dismiss=modal.dismiss))
         modal.open()
 
+
 class TuneScopeApp(App):
     """ Kivy application class """
 
@@ -339,7 +346,6 @@ class TuneScopeApp(App):
         self.player = Player()
         self.theme = Theme()
         return MainWindow()
-
 
 
 if __name__ == '__main__':
