@@ -2,7 +2,7 @@
 -e git+https://github.com/kivy/pyobjus.git@e932bda93b74687da63fcc545b4942bed9fd43bf#egg=pyobjus
 Cython==0.26.1
 kivy==1.10.1
-aubio==0.4.8
+aubio==0.4.9
 mercurial
 mock==2.0.0
 numpy==1.16.1
